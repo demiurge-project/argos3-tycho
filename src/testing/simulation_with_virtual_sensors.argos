@@ -1,0 +1,410 @@
+<?xml version="1.0" ?>
+<argos-configuration>
+
+  <!-- ************************* -->
+  <!-- * General configuration * -->
+  <!-- ************************* -->
+  <framework>
+    <!--
+        System configuration:
+        - threads: the number of slave threads to parallelize the
+          computation. For less than 100 robots thread management is not
+          beneficial, so here we set it to 0. When set to 0, it means that
+          the computation is not parallelized: the main thread does
+          everything.
+    -->
+    <system threads="0" />
+    <!--
+        Experiment configuration:
+        - length: total experiment time in seconds (0 means the experiment
+          has no time limit)
+        - ticks_per_second: number of ticks per second (int value)
+        - random_seed: seed of the main random number generator. If unset
+          or set to zero, this value is taken from the clock and a warning
+          message is displayed.
+    -->
+    <experiment length="0"
+                ticks_per_second="10"
+                random_seed="124" 
+		real_time="false"
+		
+		vss_host="10.0.1.194"
+		vss_port="4050"
+		
+    />
+  </framework>
+
+  <!-- *************** -->
+  <!-- * Controllers * -->
+  <!-- *************** -->
+  <controllers>
+
+    <!-- 
+         Here you list the controllers to be used in the experiment.
+         The XML tag is set by the REGISTER_CONTROLLER(class, "tag") macro.
+         You find it in the .cpp file of your controller.
+         For this example, the macro is called in
+         controllers/footbot_diffusion.cpp:100.
+    -->
+
+    <!--
+        The attributes are:
+        - id: a unique a identifier for this controller, to be used in the
+          subsequent <arena> section to say which robots use which
+          controller
+        - library: the path to the compiled library containing you
+          controller.
+    -->
+    <its_controller id="its_contr"
+                                  library="build_simulator/testing/controllers/libits_controller.so">
+      <!--
+          The <actuators> section contains a list of the actuators used by
+          this controller.
+          If you forget a to mention an actuator here and then request it
+          in the controller, an error occurs.
+          For a list of the possible actuators, type at the command prompt:
+          $ launch_argos -q actuators
+
+          Multiple implementations of an actuator are possible. To
+          identify which one you want to use, pass it in the
+          'implementation' attribute below. When you type the 'argos3 -q'
+          command, the implementation is in the square brackets following
+          the name of the device:
+
+          $ argos3 -q actuators
+          ...
+          footbot_wheels [default]
+          ...
+      -->
+      <actuators>
+        <!--differential_steering implementation="default" /-->
+	<!--epuck_base_leds implementation="default" medium="leds"/-->
+	<epuck_rgb_leds implementation="default" medium="leds"/>
+	<epuck_wheels implementation="default"/>
+      </actuators>
+      <!--
+          The <sensors> section contains a list of the sensors used by
+          this controller.
+          If you forget a to mention a sensor here and then request it in
+          the controller, an error occurs.
+          For a list of the possible sensors, type at the command prompt:
+          $ argos3 -q sensors
+      -->
+      <sensors>
+        <epuck_proximity implementation="default" show_rays="true" calibrated="true" low_level_config="/home/root/gfrancesca/low_level_configuration/proximity_sensor.xml"/>
+	<!--epuck_light implementation="default" show_rays="true"/-->
+	<virtual_ground_sensor implementation="default" sensor_model_file="" real_experiment="false"/>	
+	<!--virtual_fake_sensor_01 implementation="default" />
+	<virtual_fake_sensor_02 implementation="default" /-->
+	<!--virtual_proximity_sensor implementation="default" /-->
+	<virtual_light_sensor implementation="default" real_experiment="false" />
+	<virtual_range_and_bearing_sensor implementation="default" real_experiment="false" />
+      </sensors>
+      <!--
+          The <params> section is passed as-is to the controller's Init()
+          function.
+          The user, writing the controller, defines how it is organized.
+          To understand what these parameters are for, check the
+          controller's header file in
+          controllers/footbot_diffusion/footbot_diffusion.h.
+      -->
+      <params alpha="7.5" delta="0.1" velocity="5" />
+    </its_controller>
+
+
+    <bl_epuck id="ble" library="build_simulator/testing/bl_epuck/libbl_epuck.so">
+         
+           <actuators>
+                <epuck_wheels    implementation="default" noise_std_dev="0.05"/>
+                <epuck_rgb_leds implementation="default" medium="leds"/>
+                <epuck_range_and_bearing implementation="medium" medium="rab" data_size="2"/>
+            </actuators>
+            <sensors>
+                <epuck_proximity implementation="default" show_rays="true" noise_level="0.05" calibrated="true" low_level_config="/home/root/gfrancesca/low_level_configuration/proximity_sensor.xml" />
+                <!--epuck_ground implementation="rot_z_only" noise_level="0.05"/-->
+		<virtual_ground_sensor implementation="default" sensor_model_file="" real_experiment="false"/>
+                <!--epuck_encoder implementation="default" /-->
+                <!--epuck_light implementation="default" show_rays="false" noise_level="0.05"/-->
+		<!--light implementation="default" show_rays="true" noise_level="0.05"/-->
+		<virtual_light_sensor implementation="default" real_experiment="false" />
+                <epuck_range_and_bearing implementation="medium" medium="rab" show_rays="true" check_occlusions="true" data_size="2"/>
+			
+            </sensors>
+      
+	    <!--params command="--nstates 2 --s0 2 --n0 1 --n0x0 1 --c0x0 3 --p0x0 1 --s1 3 --n1 1 --n1x0 0 --c1x0 0 --p1x0 1"-->
+	    <params command="--nstates 2 --s0 0 --rwm0 5 --n0 1 --n0x0 1 --c0x0 1 --p0x0 10 --w0x0 1 --s1 1 --n1 0">
+		
+            </params>
+
+    </bl_epuck>
+
+    <!--ground_sensor_sampler id="ground_sampler"
+                        library="build_simulator/testing/controllers/libground_sensor_sampler.so">
+      <actuators>
+        <!--epuck_base_leds implementation="default" medium="leds"/-->
+        <!--epuck_rgb_leds implementation="default" medium="leds"/>
+        <epuck_wheels implementation="default"/>
+        <!-- <epuck_range_and_bearing implementation="medium" medium="rab" show_rays="true"/> -->
+        <!-- <epuck_ircom implementation="medium" medium="ircom" show_rays="true"/> -->
+      <!--/actuators>
+      <sensors>
+        <epuck_proximity implementation="default" show_rays="true" calibrated="true" low_level_config="/home/root/gfrancesca/low_level_configuration/proximity_sensor.xml"/>
+        <!-- <epuck_light implementation="default" show_rays="true"/> -->
+        <!--epuck_ground implementation="rot_z_only" calibrated="true" low_level_config="/home/root/gfrancesca/low_level_configuration/base_ground_sensor.xml"/>
+        <!-- <epuck_range_and_bearing implementation="medium" medium="rab" show_rays="true"/> -->
+        <!-- <epuck_ircom implementation="medium" medium="ircom" show_rays="true"/> -->
+	<!--epuck_virtual_ground_sensor implementation="default" /-->
+      <!--/sensors>
+      <params LWS="5" RWS="-5"/>
+    </ground_sensor_sampler-->
+
+
+    <!--watcher_controller id="watcher"
+                        library="/home/mattia/argos3-epuck/simulator_build/testing/libwatcher.so">
+      <actuators>
+        <!--epuck_base_leds implementation="default" medium="leds"/-->
+        <!--epuck_rgb_leds implementation="default" medium="leds"/-->
+        <!--epuck_wheels implementation="default"/-->
+        <!-- <epuck_range_and_bearing implementation="medium" medium="rab" show_rays="true"/> -->
+        <!-- <epuck_ircom implementation="medium" medium="ircom" show_rays="true"/> >
+      </actuators>
+      <sensors>
+        <epuck_proximity implementation="default" show_rays="true"/>
+        <!-- <epuck_light implementation="default" show_rays="true"/> -->
+        <!-- <epuck_ground implementation="rot_z_only" show_rays="true"/> -->
+        <!-- <epuck_range_and_bearing implementation="medium" medium="rab" show_rays="true"/> -->
+        <!-- <epuck_ircom implementation="medium" medium="ircom" show_rays="true"/> -->
+	<!--epuck_virtual_ground_sensor implementation="default" />
+      </sensors>
+      <params LWS="5" RWS="-5"/>
+    </watcher_controller-->
+
+
+  </controllers>
+
+  <!-- *********************** -->
+  <!-- * Arena configuration * -->
+  <!-- *********************** -->
+  <!--
+      Here you place all the objects in the arena.
+      All linear measures are expressed in meters.
+      Angles are expressed in degrees.
+      The 'size' attribute contains the size of the arena around the
+      origin.
+      To get help about which entities are available, type at the command
+      prompt:
+      
+      $ argos3 -q entities
+
+      and to get help about a specific entity (for instance, the box)
+
+      $ argos3 -q box
+  -->
+  <arena size="5, 5, 1" center="0,0,0.5">
+  <!--arena size="18, 14, 1" center="3.3675,3.85,0.5"-->
+
+    <floor id="floor"
+           source="image"
+           path="/home/mattia/argos3-iridia-tracking-system/images/floor/black_and_white_stripes_200x200.png"/>
+
+    <light id="light0"
+           position="2,0,0.75"
+           orientation="0,0,0"
+           color="yellow"
+           intensity="1.0"
+           medium="leds"/>
+
+    <!-- Place four boxes in a square to delimit the arena -->
+    <box id="wall_north" size="4,0.10,0.20" movable="false">
+      <body position="0,2,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_south" size="4,0.10,0.20" movable="false">
+      <body position="0,-2,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_east" size="0.1,4,0.2" movable="false">
+      <body position="2,0,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_west" size="0.1,4,0.2" movable="false">
+      <body position="-2,0,0" orientation="0,0,0" />	
+    </box>
+
+    <!-- Place a foot-bot in the origin and bind it to the controller -->
+    <!--foot-bot id="fb_0">
+      <body position="0,0,0" orientation="0,0,0" />
+      <controller config="fdc"/>
+    </foot-bot-->
+    <!--distribute>
+      <position method="uniform" min="-2,-2,0" max="2,2,0" />
+      <position method="constant" values="0,0,0" />
+      <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
+      <entity quantity="20" max_trials="100">
+        <foot-bot id="fb">
+          <controller config="fdc" />
+        </foot-bot>
+      </entity>
+    </distribute-->
+
+    <!--distribute>
+      <position method="uniform" min="-1.4,-1.4,0" max="1.4,1.4,0" />
+      <position method="constant" values="0,0,0" />
+      <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
+      <entity quantity="20" max_trials="100">
+        <e-puck id="epuck">
+          <controller config="ble" />
+        </e-puck>
+      </entity>
+    </distribute-->
+
+
+
+
+         <!--e-puck id="epuck_1" vss_host="10.0.1.142" vss_port="4050">
+             <body position="0,0,0" orientation="0,0,0"/>
+             <controller config="its_contr"/> 
+         </e-puck-->
+         <!--e-puck id="epuck_2_34">
+             <body position="0,0,0" orientation="0,0,0"/>
+             <controller config="its_contr"/> 
+         </e-puck>
+         <!--e-puck id="epuck_3_40">
+             <body position="0.25,0,0" orientation="0,0,0"/>
+             <controller config="its_contr"/> 
+         </e-puck>
+         <!--e-puck id="epuck_4_55">
+             <body position="0.25,0,0" orientation="0,0,0"/>
+             <controller config="its_contr"/> 
+         </e-puck>
+         <!--e-puck id="epuck_5_15">
+             <body position="0,0,0" orientation="0,0,0"/>
+             <controller config="its_contr"/> 
+         </e-puck>
+         <!--e-puck id="epuck_6_38">
+             <body position="1,0,0" orientation="0,0,0"/>
+             <controller config="its_contr"/> 
+         </e-puck-->
+         <!--e-puck id="epuck_7_34">
+             <body position="0.15,0,0" orientation="0,0,0"/>
+             <controller config="its_contr"/> 
+         <!--/e-puck>
+         <e-puck id="epuck_8_41">
+             <body position="0,0.15,0" orientation="0,0,0"/>
+             <controller config="its_contr"/> 
+         </e-puck>
+         <e-puck id="epuck_9_47">
+             <body position="-0.15,0,0" orientation="0,0,0"/>
+             <controller config="its_contr"/> 
+         </e-puck>
+         <!--e-puck id="epuck_10_50" vss_host="10.0.1.39" vss_port="4050">
+             <body position="0,0,0" orientation="0,0,0"/>
+             <controller config="its_contr"/> 
+         </e-puck>
+         <e-puck id="epuck_11_48">
+             <body position="0,0,0" orientation="0,0,0"/>
+             <controller config="its_contr"/> 
+         </e-puck>
+         <e-puck id="epuck_13_49">
+             <body position="0,0.25,0" orientation="0,0,0"/>
+             <controller config="its_contr"/> 
+         </e-puck-->
+         <!--e-puck id="epuck_14_53">
+             <body position="0,-0.15,0" orientation="0,0,0"/>v
+             <controller config="its_contr"/> 
+         </e-puck>
+         <!--e-puck id="epuck_16">
+             <body position="0,0,0" orientation="0,0,0"/>
+             <controller config="ble"/> 
+         </e-puck>
+         <e-puck id="epuck_17_57">
+             <body position="0,0,0" orientation="0,0,0"/>
+             <controller config="its_contr"/> 
+         </e-puck>
+         <!--e-puck id="epuck_19_30">
+             <body position="0,0,0" orientation="0,0,0"/>
+             <controller config="ground_sampler"/> 
+         </e-puck-->
+         <e-puck id="epuck_20_1">
+             <body position="1,-1,0" orientation="0,0,0"/>
+             <controller config="ble"/> 
+         </e-puck>
+         <e-puck id="epuck_21_2">
+             <body position="1,1,0" orientation="0,0,0"/>
+             <controller config="ble"/> 
+         </e-puck>
+         <e-puck id="epuck_22_45">
+             <body position="-1,1,0" orientation="0,0,0"/>
+             <controller config="ble"/> 
+         </e-puck>
+         <e-puck id="epuck_8_41">
+             <body position="-1,-1,0" orientation="0,0,0"/>
+             <controller config="ble"/> 
+         </e-puck>
+             
+  </arena>
+
+  <!-- ******************* -->
+  <!-- * Physics engines * -->
+  <!-- ******************* -->
+  <!--
+      In ARGoS, multiple physics engines can run at the same time.
+      In this section you say which engines to use for the experiment.
+      To know which engines are available, type at the command prompt:
+      
+      $ argos3 -q physics_engines
+  -->
+  <physics_engines>
+    <!--
+        Use a 2D dynamics engine.
+    -->
+    <dynamics2d id="dyn2d" />
+
+    <!--iridia_tracking_system 
+	
+	id="its"
+
+	translate_y="2.50"
+	translate_x="7.50"
+	
+	its_host="164.15.10.153"
+	its_port="4040"
+
+    /-->
+
+    <!--dynamics_virtual_sensors id="dynVS" /-->
+	
+  </physics_engines>
+
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <!--
+      Here you specify the media in use. Media allow robots to communicate.
+      In this experiment, robots do not communicate, so no media are
+      specified.
+      To know which media are available, type at the command prompt:
+
+      $ argos3 -q media
+  -->
+  <media >
+	<led id="leds" />
+	<range_and_bearing id="rab"/>
+  </media>
+
+  <!-- ****************** -->
+  <!-- * Visualization * -->
+  <!-- ****************** -->
+  <!--
+      Here you specify which visualization to use.
+      You can also not specify a visualization at all, in which case ARGoS
+      will run without showing anything.
+      Having no visualization is useful when you run ARGoS in a batch of
+      experiments to collect statistics.
+      To know which visualizations are available, type at the command
+      prompt:
+
+      $ argos3 -q visualizations
+  -->
+  <visualization>
+    <qt-opengl />
+  </visualization>
+
+</argos-configuration>

@@ -1,0 +1,242 @@
+<?xml version="1.0" ?>
+<argos-configuration>
+
+  <!-- ************************* -->
+  <!-- * General configuration * -->
+  <!-- ************************* -->
+  <framework>
+    <!--
+        System configuration:
+        - threads: the number of slave threads to parallelize the
+          computation. For less than 100 robots thread management is not
+          beneficial, so here we set it to 0. When set to 0, it means that
+          the computation is not parallelized: the main thread does
+          everything.
+    -->
+    <system threads="0" />
+    <!--
+        Experiment configuration:
+        - length: total experiment time in seconds (0 means the experiment
+          has no time limit)
+        - ticks_per_second: number of ticks per second (int value)
+        - random_seed: seed of the main random number generator. If unset
+          or set to zero, this value is taken from the clock and a warning
+          message is displayed.
+    -->
+    <experiment length="120"
+                ticks_per_second="10"
+
+    real_time="true"
+
+    vss_host="10.0.1.199"
+    vss_port="4050"
+
+    random_seed="0"
+
+    />
+  </framework>
+
+  <!-- *************** -->
+  <!-- * Controllers * -->
+  <!-- *************** -->
+  <controllers>
+    <path_planning_controller id="path"
+                                  library="/home/ken/depots/iridia-tracking-system/build/testing/controllers/libpathplanning.so">
+      <actuators>
+        <epuck_wheels implementation="default"/>
+      <epuck_base_leds implementation="default" medium="leds"/>
+      </actuators>
+      <sensors>
+        <epuck_proximity implementation="default" show_rays="false"/>
+        <gps_virtual_sensor implementation="default" />
+        <destination_virtual_sensor implementation="default"/>
+        <epuck_battery implementation="default" />
+      </sensors>
+      <params placementPrecision="0.03"
+              anglePrecision="5"
+
+              proximitySignificativeThreshold="0.4"
+
+              proximityRepulsionForce="8"
+              proximityRepulsionForceNoise="4"
+
+              batteryTimeStepThreshold="30"
+
+              forceRandomWalkAfterNoUpdateFor="0">
+
+        <recharge_destination x="0.0" y="0.0" rot="0"/>
+      </params>
+    </path_planning_controller>
+
+  </controllers>
+
+  <!-- ****************** -->
+  <!-- * Loop functions * -->
+  <!-- ****************** -->
+  <loop_functions library="/home/arena/repos/iridia-tracking-system/build/testing/loop_functions/pathplanning_loop_functions/libsimplified_pathplanning_loop_functions.so"
+                  label="simplified_pathplanning_loop_functions">
+
+
+    <pathplanning randomDistribution="true"
+                  sharedDestination="true"
+                  robots="4"
+
+                  robotType="epuck"
+
+                  timestepInPosition="0"
+
+                  tickBudget="0"
+
+                  minProcentPlacementBudget="0.9"
+                  maxTimeAfterBudgetPlacement="30"
+
+                  assigment="min_max_assignment_generator"
+                  path="dijkstra_path_generator">
+      <!--
+          Section needed in randomDistribution == false
+          Contains user defined position.
+          Here is an exemple for 2 sequences and 5 robots
+        -->
+      <!--
+          Section needed in randomDistribution == true
+          Contains distribution settings.
+          If file with seeds is not specified, the system use random seeds
+        -->
+      <distribute>
+          <position method="circularUniform" center="0,0,0" radius="1.2" />
+          <orientation method="uniform" min="0,0,0" max="0,0,360" />
+          <entity max_trials="100" />
+      </distribute>
+    </pathplanning>
+  </loop_functions>
+
+  <!-- *********************** -->
+  <!-- * Arena configuration * -->
+  <!-- *********************** -->
+  <arena size="2.5, 2.5, 1" center="0,0,0">
+      <floor id="floor" source="loop_functions" pixels_per_meter="50" />
+
+      <!--Dodecagonal arena with side of length .66-->
+      <box id="wall_1" size="0.01,.66,0.08" movable="false">
+        <body position="-1.231,0,0" orientation="0,0,0"/>
+      </box>
+      <box id="wall_2" size="0.01,.66,0.08" movable="false">
+        <body position="1.231,0,0" orientation="0,0,0"/>
+      </box>
+      <box id="wall_3" size="0.01,.66,0.08" movable="false">
+        <body position="0,1.231,0" orientation="90,0,0"/>
+      </box>
+      <box id="wall_4" size="0.01,.66,0.08" movable="false">
+        <body position="0,-1.231,0" orientation="90,0,0"/>
+      </box>
+      <box id="wall_5" size="0.01,.66,0.08" movable="false">
+        <body position="-.615,-1.066,0" orientation="60,0,0"/>
+      </box>
+      <box id="wall_6" size="0.01,.66,0.08" movable="false">
+        <body position="-1.066,-.615,0" orientation="30,0,0"/>
+      </box>
+      <box id="wall_7" size="0.01,.66,0.08" movable="false">
+        <body position=".615,1.066,0" orientation="60,0,0"/>
+      </box>
+      <box id="wall_8" size="0.01,.66,0.08" movable="false">
+        <body position="1.066,.615,0" orientation="30,0,0"/>
+      </box>
+      <box id="wall_9" size="0.01,.66,0.08" movable="false">
+        <body position="-.615,1.066,0" orientation="-60,0,0"/>
+      </box>
+      <box id="wall_10" size="0.01,.66,0.08" movable="false">
+        <body position="-1.066,.615,0" orientation="-30,0,0"/>
+      </box>
+      <box id="wall_11" size="0.01,.66,0.08" movable="false">
+        <body position=".615,-1.066,0" orientation="-60,0,0"/>
+      </box>
+      <box id="wall_12" size="0.01,.66,0.08" movable="false">
+        <body position="1.066,-.615,0" orientation="-30,0,0"/>
+      </box>
+
+    <!--
+        Contains definition of robots and tags.
+        Here is an exemple with two robots:
+          - robot 50 with tag 15
+          - robot 58 with tag 19
+
+          epuck_tag_robot
+      -->
+    <e-puck id="epuck_20_33">
+      <body position="0,-0.4,0" orientation="0,0,0"/>
+      <controller config="path"/>
+    </e-puck>
+    <e-puck id="epuck_15_55">
+      <body position="0.4,-0.6,0" orientation="0,0,0"/>
+      <controller config="path"/>
+    </e-puck>
+    <e-puck id="epuck_7_46">
+      <body position="0.4,-0.6,0" orientation="0,0,0"/>
+      <controller config="path"/>
+    </e-puck>
+    <e-puck id="epuck_10_37">
+      <body position="0.4,-0.6,0" orientation="0,0,0"/>
+      <controller config="path"/>
+    </e-puck>
+
+  </arena>
+
+  <!-- ******************* -->
+  <!-- * Physics engines * -->
+  <!-- ******************* -->
+  <physics_engines>
+    <!--
+        Configuration of the connection to the tracking system.
+        Real_experiment can be turned to false to make tests
+        Translate is in meters according to the corner of the arena
+        with the two doors.
+        X axis is on the length of the room
+        Y axis is on the width of the room
+      -->
+    <iridia_tracking_system
+      id="its"
+
+      translate_y="4.565"
+      translate_x="2.57"
+
+      its_host="164.15.10.153"
+      its_port="4040"
+    />
+
+
+  </physics_engines>
+
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <!-- Define the media you only need for your virtual sensors/actuators -->
+  <media >
+    <led id="leds" />
+  </media>
+
+  <!-- ****************** -->
+  <!-- * Visualization * -->
+  <!-- ****************** -->
+  <!--
+  -->
+  <visualization>
+    <qt-opengl splash="false">
+        <user_functions library="/home/arena/repos/iridia-tracking-system/build/testing/loop_functions/pathplanning_loop_functions/libpathplanning_loop_functions.so"
+                        label="pathplanning_qt_user_functions" />
+        <camera>
+          <placement idx="0" position="-0.0996717,-0.805497,3.84317" look_at="-0.0999109,-0.656846,2.85428" lens_focal_length="20" />
+          <placement idx="1" position="11.0602409,-1.0072,5.20828" look_at="0.0626103,-0.878381,4.21662" lens_focal_length="20" />
+          <placement idx="2" position="-2,0,2" look_at="0,0,0" lens_focal_length="20" />
+          <placement idx="3" position="-2,0,2" look_at="0,0,0" lens_focal_length="20" />
+          <placement idx="4" position="-2,0,2" look_at="0,0,0" lens_focal_length="20" />
+          <placement idx="5" position="-2,0,2" look_at="0,0,0" lens_focal_length="20" />
+          <placement idx="6" position="-2,0,2" look_at="0,0,0" lens_focal_length="20" />
+          <placement idx="7" position="-2,0,2" look_at="0,0,0" lens_focal_length="20" />
+          <placement idx="8" position="-2,0,2" look_at="0,0,0" lens_focal_length="20" />
+          <placement idx="9" position="-2,0,2" look_at="0,0,0" lens_focal_length="20" />
+          <placement idx="10" position="-0.767635,-0.840317,0.923515" look_at="-0.767266,-0.849514,-0.0764431" lens_focal_length="20" />
+        </camera>
+    </qt-opengl>
+  </visualization>
+
+</argos-configuration>
