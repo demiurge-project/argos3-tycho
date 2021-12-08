@@ -1,0 +1,6 @@
+
+# ignore catkin build directories
+
+build/
+devel/
+install/
