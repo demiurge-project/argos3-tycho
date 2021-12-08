@@ -35,6 +35,12 @@ catkin_package(
   DEPENDS system_lib
 )
 
+include_directories(
+		${catkin_INCLUDE_DIRS}
+)
+
+link_libraries(${catkin_LIBRARIES})
+
 if(ARGOS_BUILD_FOR STREQUAL "simulator")
 	set (ARGOS_BUILD_FOR_SIMULATOR)
 

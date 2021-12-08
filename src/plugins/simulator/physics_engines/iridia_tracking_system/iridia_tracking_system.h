@@ -56,6 +56,9 @@ namespace argos {
 
 #include <pthread.h>
 
+#include "ros/ros.h"
+#include <sensor_msgs/Range.h>
+#include <std_msgs/ColorRGBA.h>
 
 
 namespace argos {

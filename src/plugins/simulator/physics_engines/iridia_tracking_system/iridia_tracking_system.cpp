@@ -141,7 +141,14 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
         //init ROS
         if(!ros::isInitialized())
         {
-            //m_pcRobotState->InitRos(GetId());
+            ros::Publisher proximityPublishers[40][8];
+            ros::Publisher groundPublishers[40][3];
+            sensor_msgs::Range proximityMsgs[40][8];
+            ros::Publisher lightPublishers[40][8];
+            ros::Publisher colorPublisher[40];
+            sensor_msgs::Range groundMsgs[40][3];
+            sensor_msgs::Range lightMsgs[40][8];
+
             //init ROS
             char** argv = NULL;
             int argc = 0;
