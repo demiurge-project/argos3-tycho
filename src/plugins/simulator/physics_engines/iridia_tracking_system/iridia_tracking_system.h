@@ -43,7 +43,6 @@ namespace argos {
    class CITSModelGridUpdater;
 }
 
-#include <argos3/plugins/simulator/physics_engines/iridia_tracking_system/argos_its_client/argos_its_client_thread.h>
 #include <argos3/plugins/simulator/physics_engines/iridia_tracking_system/argos_its_client/arena_state_struct.h>
 #include <argos3/plugins/simulator/physics_engines/iridia_tracking_system/virtual_sensor_server/virtual_sensor_server.h>
 
@@ -186,11 +185,6 @@ namespace argos {
          * @brief m_tPhysicsModels <Argos ID, Pointer to the instance of the physics model>
          */
         std::map<std::string, CIridiaTrackingSystemModel*> m_tPhysicsModels;
-
-        /**
-         * @brief m_cClient Pointer to the instance of the client thread
-         */
-        CArgosITSClientThread * m_cClient;
 
         /**
          * @brief m_cThread The thread on which the Client is running

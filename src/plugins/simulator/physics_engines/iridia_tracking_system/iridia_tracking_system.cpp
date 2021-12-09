@@ -8,53 +8,56 @@
 #include "iridia_tracking_system_model.h"
 
 namespace argos {
-class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrackingSystemModel>::COperation {
+    class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrackingSystemModel>::COperation {
 
-   public:
+    public:
 
-      CITSModelCheckIntersectionOperation():m_vecIntersections(),fTOnRay(0),cRay(CRay3()){
-      }
+        CITSModelCheckIntersectionOperation() : m_vecIntersections(), fTOnRay(0), cRay(CRay3()) {
+        }
 
-      virtual ~CITSModelCheckIntersectionOperation() {
-    	  m_vecIntersections.clear();
-      }
+        virtual ~CITSModelCheckIntersectionOperation() {
+            m_vecIntersections.clear();
+        }
 
-      virtual bool operator()(CIridiaTrackingSystemModel& c_model) {
-         // Process this LED only if it's lit
-    	  LOG << "PROCESSING MODEL: " << c_model.GetEmbodiedEntity().GetParent().GetTypeDescription() << std::endl;
-         if (c_model.CheckIntersectionWithRay(fTOnRay,cRay)){
-        	 m_vecIntersections.push_back(std::pair<Real,CEmbodiedEntity*>(fTOnRay,&(c_model.GetEmbodiedEntity())));
-        	 if (c_model.GetEmbodiedEntity().GetParent().GetTypeDescription() == "box" || c_model.GetEmbodiedEntity().GetParent().GetTypeDescription() == "cylinder")
-        		 return false;
-         }
-         return true;
-      }
+        virtual bool operator()(CIridiaTrackingSystemModel &c_model) {
+            // Process this LED only if it's lit
+            LOG << "PROCESSING MODEL: " << c_model.GetEmbodiedEntity().GetParent().GetTypeDescription() << std::endl;
+            if (c_model.CheckIntersectionWithRay(fTOnRay, cRay)) {
+                m_vecIntersections.push_back(
+                        std::pair<Real, CEmbodiedEntity *>(fTOnRay, &(c_model.GetEmbodiedEntity())));
+                if (c_model.GetEmbodiedEntity().GetParent().GetTypeDescription() == "box" ||
+                    c_model.GetEmbodiedEntity().GetParent().GetTypeDescription() == "cylinder")
+                    return false;
+            }
+            return true;
+        }
 
-      CEmbodiedEntity* GetFirstCollision(){
-		  if (m_vecIntersections.size())
-			  return m_vecIntersections[0].second;
-		  return NULL;
-      }
+        CEmbodiedEntity *GetFirstCollision() {
+            if (m_vecIntersections.size())
+                return m_vecIntersections[0].second;
+            return NULL;
+        }
 
-      CEmbodiedEntity* GetFirstNonRobotCollision(){
-    	  for (UInt32 i=0; i<m_vecIntersections.size(); ++i){
-    		  if (m_vecIntersections[i].second->GetParent().GetTypeDescription() == "box" || m_vecIntersections[i].second->GetParent().GetTypeDescription() == "cylinder")
-    			  return m_vecIntersections[i].second;
-    	  }
-          return NULL;
-      }
+        CEmbodiedEntity *GetFirstNonRobotCollision() {
+            for (UInt32 i = 0; i < m_vecIntersections.size(); ++i) {
+                if (m_vecIntersections[i].second->GetParent().GetTypeDescription() == "box" ||
+                    m_vecIntersections[i].second->GetParent().GetTypeDescription() == "cylinder")
+                    return m_vecIntersections[i].second;
+            }
+            return NULL;
+        }
 
-      void Setup(Real& f_t_on_ray,  const CRay3& c_ray) {
-    	  fTOnRay = f_t_on_ray;
-    	  cRay=c_ray;
-          m_vecIntersections.clear();
-      }
+        void Setup(Real &f_t_on_ray, const CRay3 &c_ray) {
+            fTOnRay = f_t_on_ray;
+            cRay = c_ray;
+            m_vecIntersections.clear();
+        }
 
-   private:
-      std::vector<std::pair<Real,CEmbodiedEntity*> > m_vecIntersections;
-      Real fTOnRay;
-      CRay3 cRay;
-   };
+    private:
+        std::vector <std::pair<Real, CEmbodiedEntity *>> m_vecIntersections;
+        Real fTOnRay;
+        CRay3 cRay;
+    };
 
 
 
@@ -62,23 +65,22 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
     /****************************************/
 
     CIridiaTrackingSystem::CIridiaTrackingSystem() :
-    	m_cThread(),
-        m_cSimulator(CSimulator::GetInstance()),
-        m_cSpace(m_cSimulator.GetSpace()),
-        m_unITSServerPort(4040),
-        m_cVirtualSensorServer(CVirtualSensorServer::GetInstance()),
-        m_cArenaStateStruct(CArenaStateStruct::GetInstance()),
-        m_cArenaCenter3D(),
-        m_bRealExperiment(true),
-        m_strResultsFile("")
-    {
-        m_tTableRobotId = new std::map<std::string, std::pair<UInt32, UInt32> > ();
+            m_cThread(),
+            m_cSimulator(CSimulator::GetInstance()),
+            m_cSpace(m_cSimulator.GetSpace()),
+            m_unITSServerPort(4040),
+            m_cVirtualSensorServer(CVirtualSensorServer::GetInstance()),
+            m_cArenaStateStruct(CArenaStateStruct::GetInstance()),
+            m_cArenaCenter3D(),
+            m_bRealExperiment(true),
+            m_strResultsFile("") {
+        m_tTableRobotId = new std::map <std::string, std::pair<UInt32, UInt32>>();
     }
 
     /****************************************/
     /****************************************/
 
-    void CIridiaTrackingSystem::Init(TConfigurationNode& t_tree) {
+    void CIridiaTrackingSystem::Init(TConfigurationNode &t_tree) {
         CPhysicsEngine::Init(t_tree);
 
         // Parse XML file and collect information
@@ -86,20 +88,22 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
             GetNodeAttributeOrDefault<std::string>(t_tree, "its_host", m_strITSServerAddress, "169.254.0.200");
             GetNodeAttributeOrDefault<UInt32>(t_tree, "its_port", m_unITSServerPort, m_unITSServerPort);
         }
-        catch(CARGoSException& ex) {
-           THROW_ARGOSEXCEPTION_NESTED("Failed to initialize its physics engines. Parse error in its_host, its_port.", ex);
+        catch (CARGoSException &ex) {
+            THROW_ARGOSEXCEPTION_NESTED("Failed to initialize its physics engines. Parse error in its_host, its_port.",
+                                        ex);
         }
-        try{
+        try {
             GetNodeAttributeOrDefault(t_tree, "real_experiment", m_bRealExperiment, m_bRealExperiment);
         }
-        catch(CARGoSException& ex) {
-           THROW_ARGOSEXCEPTION_NESTED("Failed to initialize its physics engines. Parse error in real_experiment.", ex);
+        catch (CARGoSException &ex) {
+            THROW_ARGOSEXCEPTION_NESTED("Failed to initialize its physics engines. Parse error in real_experiment.",
+                                        ex);
         }
         try {
             GetNodeAttributeOrDefault<UInt32>(t_tree, "vss_port", m_unVirtualSensorServerPort, 4050);
         }
-        catch(CARGoSException& ex) {
-           THROW_ARGOSEXCEPTION_NESTED("Failed to initialize its physics engines. Parse error in vss_port.", ex);
+        catch (CARGoSException &ex) {
+            THROW_ARGOSEXCEPTION_NESTED("Failed to initialize its physics engines. Parse error in vss_port.", ex);
         }
 
 
@@ -112,18 +116,18 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
             GetNodeAttributeOrDefault<Real>(t_tree, "translate_x", fArenaCenterX, 0.0f);
             GetNodeAttributeOrDefault<Real>(t_tree, "translate_y", fArenaCenterY, 0.0f);
         }
-        catch(CARGoSException& ex) {
-           THROW_ARGOSEXCEPTION_NESTED("Failed to initialize its physics engines. Parse error in translate_x, translate_y.", ex);
+        catch (CARGoSException &ex) {
+            THROW_ARGOSEXCEPTION_NESTED(
+                    "Failed to initialize its physics engines. Parse error in translate_x, translate_y.", ex);
         }
 
         m_cArenaCenter3D.SetX(fArenaCenterX);
         m_cArenaCenter3D.SetY(fArenaCenterY);
 
         // Init ROS
-        if(!ros::isInitialized())
-        {
+        if (!ros::isInitialized()) {
             //init ROS
-            char** argv = NULL;
+            char **argv = NULL;
             int argc = 0;
             ros::init(argc, argv, "automode");
 
@@ -133,8 +137,7 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
             // TODO: Parameter for odometry topic and subscribe to topic
 
             std::stringstream ss;
-            for (int j = 0; j < 40; j++)
-            {
+            for (int j = 0; j < 40; j++) {
                 //init color
 
                 ss.str("");
@@ -148,22 +151,21 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
         }
     }
 
-    void CIridiaTrackingSystem::timeCallback(const std_msgs::Time::ConstPtr& msg) {
+    void CIridiaTrackingSystem::timeCallback(const std_msgs::Time::ConstPtr &msg) {
+        // TODO: Make this a callback for odometry
+        // TODO: Write position into ArenaStruct
         LOG << msg->data.sec << std::endl;
     }
 
     /****************************************/
     /****************************************/
 
-    void CIridiaTrackingSystem::Reset()
-    {
+    void CIridiaTrackingSystem::Reset() {
         // Notify the clients to move towards the target
         // m_cVirtualSensorServer.ReplaceRobots();
         // ReplaceRobots contains SendAllVirtualSensorData in a loop
         // wait until all robots are back in place
 
-        // Untrigger the Client Thread
-        m_cClient->TriggerTrakingSystem();  // TODO: Check what this is doing
         // Update the physics engine
         Update();
         // Set the step counter to 0
@@ -181,8 +183,7 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
     /****************************************/
     /****************************************/
 
-    void CIridiaTrackingSystem::PostSpaceInit()
-    {
+    void CIridiaTrackingSystem::PostSpaceInit() {
         // Set the initial arena state as describe in the XML configuration file
         InitArenaState();
 
@@ -222,13 +223,12 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
         }
 
         // For each physics model, call the UpdateEntityStatus
-        for(CIridiaTrackingSystemModel::TMap::iterator it = m_tPhysicsModels.begin();
-            it != m_tPhysicsModels.end(); ++it)
-        {
-           // Get readings from virtual sensors
-           it->second->UpdateEntityStatus();  // TODO: Replace this with ROS?! -> set ArenaStateStruct with ROS Info
+        for (CIridiaTrackingSystemModel::TMap::iterator it = m_tPhysicsModels.begin();
+             it != m_tPhysicsModels.end(); ++it) {
+            // Get readings from virtual sensors
+            it->second->UpdateEntityStatus();  // TODO: Replace this with ROS?! -> set ArenaStateStruct with ROS Info
 
-           m_cVirtualSensorServer.SwapBuffers((*m_tTableRobotId->find(it->first)).second.second);
+            m_cVirtualSensorServer.SwapBuffers((*m_tTableRobotId->find(it->first)).second.second);
         }
 
         // ... ask HERE the Virtual Sensor Server to send the data of all robots in a loop.
@@ -241,9 +241,8 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
     /****************************************/
     /****************************************/
 
-    void CIridiaTrackingSystem::PositionAndOrientationPhysicsToSpace(CVector3 &c_new_pos, CQuaternion &c_new_orient, std::string str_id)
-    {
-        // TODO: Replace this with ROS!
+    void CIridiaTrackingSystem::PositionAndOrientationPhysicsToSpace(CVector3 &c_new_pos, CQuaternion &c_new_orient,
+                                                                     std::string str_id) {
         // Look for Id's conversion in ITS ids (tag)
         // Then look for that ITS id's position in the m_ptArenaState map
         TTableRobotId::iterator itHashRobotId;
@@ -271,41 +270,24 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
     /****************************************/
     /****************************************/
 
-    void *CIridiaTrackingSystem::start(void* p) {
-        // Notify the Client Thread to start
-        CArgosITSClientThread *cClientThread = reinterpret_cast<CArgosITSClientThread*>(p);
-        cClientThread->Run();
-        return p;
-    }
-
-    /****************************************/
-    /****************************************/
-
-    bool CIridiaTrackingSystem::IsExperimentFinished()
-    {
-        bool bExperimentFinished = m_cSimulator.IsExperimentFinished();
-        if (bExperimentFinished) {
-            //m_cVirtualSensorServer.SendArgosSignal(SInt32(-1));
-        }
+    bool CIridiaTrackingSystem::IsExperimentFinished() {
         return m_cSimulator.IsExperimentFinished();
     }
 
     /****************************************/
     /****************************************/
 
-    void CIridiaTrackingSystem::TerminateExperiment()
-    {
+    void CIridiaTrackingSystem::TerminateExperiment() {
         if (m_bRealExperiment) {
             m_cVirtualSensorServer.SendArgosSignal(0);
         }
-
         m_cSimulator.Terminate();
     }
 
     /****************************************/
     /****************************************/
 
-    bool CIridiaTrackingSystem::IsPointContained(const CVector3& c_point) {
+    bool CIridiaTrackingSystem::IsPointContained(const CVector3 &c_point) {
         return true;
     }
 
@@ -313,172 +295,135 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
     /****************************************/
 
     UInt32 CIridiaTrackingSystem::GetNumPhysicsEngineEntities() {
-       return m_tPhysicsModels.size();
+        return m_tPhysicsModels.size();
     }
 
     /****************************************/
     /****************************************/
 
-    bool CIridiaTrackingSystem::AddEntity(CEntity& c_entity) {
-        SOperationOutcome cOutcome = CallEntityOperation<CIridiaTrackingSystemOperationAddEntity, CIridiaTrackingSystem, SOperationOutcome>(*this, c_entity);
+    bool CIridiaTrackingSystem::AddEntity(CEntity &c_entity) {
+        SOperationOutcome cOutcome = CallEntityOperation<CIridiaTrackingSystemOperationAddEntity, CIridiaTrackingSystem, SOperationOutcome>(
+                *this, c_entity);
         return cOutcome.Value;
-        /*
-        std::map<std::string, CIridiaTrackingSystemModel*>::const_iterator itPhysicsModels;
+    }
+
+    /****************************************/
+    /****************************************/
+
+    bool CIridiaTrackingSystem::RemoveEntity(CEntity &c_entity) {
+        SOperationOutcome cOutcome = CallEntityOperation<CIridiaTrackingSystemOperationRemoveEntity, CIridiaTrackingSystem, SOperationOutcome>(
+                *this, c_entity);
+        return cOutcome.Value;
+    }
+
+    /****************************************/
+    /****************************************/
+
+    void CIridiaTrackingSystem::AddPhysicsModel(const std::string &str_id,
+                                                CIridiaTrackingSystemModel &c_model) {
+        m_tPhysicsModels[str_id] = &c_model;
+    }
+
+    /****************************************/
+    /****************************************/
+
+    void CIridiaTrackingSystem::RemovePhysicsModel(const std::string &str_id) {
+        CIridiaTrackingSystemModel::TMap::iterator it = m_tPhysicsModels.find(str_id);
+        if (it != m_tPhysicsModels.end()) {
+            delete it->second;
+            m_tPhysicsModels.erase(it);
+        } else {
+            THROW_ARGOSEXCEPTION(
+                    "Model id \"" << str_id << "\" not found in Iridia tracking system \"" << GetId() << "\"");
+        }
+    }
+
+    /****************************************/
+    /****************************************/
+
+    CEmbodiedEntity *CIridiaTrackingSystem::CheckIntersectionWithRay(Real &f_t_on_ray,
+                                                                     const CRay3 &c_ray) const {
+        f_t_on_ray = 1.0f;
+        CEmbodiedEntity *cFirstCollision = NULL;
+        SBoundingBox sBoundingBox;
+        sBoundingBox.MinCorner.SetX(Min<Real>(c_ray.GetStart().GetX(), c_ray.GetEnd().GetX()));
+        sBoundingBox.MinCorner.SetY(Min<Real>(c_ray.GetStart().GetY(), c_ray.GetEnd().GetY()));
+        sBoundingBox.MinCorner.SetZ(Min<Real>(c_ray.GetStart().GetZ(), c_ray.GetEnd().GetZ()));
+        sBoundingBox.MaxCorner.SetX(Max<Real>(c_ray.GetStart().GetX(), c_ray.GetEnd().GetX()));
+        sBoundingBox.MaxCorner.SetY(Max<Real>(c_ray.GetStart().GetY(), c_ray.GetEnd().GetY()));
+        sBoundingBox.MaxCorner.SetZ(Max<Real>(c_ray.GetStart().GetZ(), c_ray.GetEnd().GetZ()));
+        std::map<std::string, CIridiaTrackingSystemModel *>::const_iterator itPhysicsModels;
         for (itPhysicsModels = m_tPhysicsModels.begin(); itPhysicsModels != m_tPhysicsModels.end(); itPhysicsModels++) {
-        	if (itPhysicsModels->second->GetEmbodiedEntity().GetRootEntity() == c_entity)
-        		break;
+            // if the ray intersect bounding box of the model, potential intersection
+            if (sBoundingBox.Intersects((*itPhysicsModels).second->GetBoundingBox())) {
+                if ((*itPhysicsModels).second->GetEmbodiedEntity().GetParent().GetTypeDescription() == "box"
+                    || (*itPhysicsModels).second->GetEmbodiedEntity().GetParent().GetTypeDescription() == "cylinder") {
+                    Real fTOnRay;
+                    CEmbodiedEntity *cCollision = (*itPhysicsModels).second->CheckIntersectionWithRay(fTOnRay, c_ray);
+                    //Delegate to the model to look for an intersection
+                    if (cCollision) {
+                        if (fTOnRay < f_t_on_ray) {
+                            f_t_on_ray = fTOnRay;
+                            cFirstCollision = cCollision;
+                        }
+                    }
+                }
+            }
         }
-        if (itPhysicsModels != m_tPhysicsModels.end())
-        	m_pcITSModelIndex->AddEntity(*(itPhysicsModels->second));
-        else
-        	THROW_ARGOSEXCEPTION("CIridiaTrackingSystem::AddEntity : Cannot find corresponding model")
-        */
+        return cFirstCollision;
     }
 
     /****************************************/
     /****************************************/
 
-    bool CIridiaTrackingSystem::RemoveEntity(CEntity& c_entity) {
-      SOperationOutcome cOutcome = CallEntityOperation<CIridiaTrackingSystemOperationRemoveEntity, CIridiaTrackingSystem, SOperationOutcome>(*this, c_entity);
-      return cOutcome.Value;
-        /*
-        std::map<std::string, CIridiaTrackingSystemModel*>::const_iterator itPhysicsModels;
-		for (itPhysicsModels = m_tPhysicsModels.begin(); itPhysicsModels != m_tPhysicsModels.end(); itPhysicsModels++) {
-			if (itPhysicsModels->second->GetEmbodiedEntity().GetRootEntity() == c_entity)
-				break;
-		}
-		if (itPhysicsModels != m_tPhysicsModels.end())
-			m_pcITSModelIndex->RemoveEntity(*(itPhysicsModels->second));
-		else
-			THROW_ARGOSEXCEPTION("CIridiaTrackingSystem::RemoveEntity : Cannot find corresponding model")
-      */
-    }
-
-    /****************************************/
-    /****************************************/
-
-   void CIridiaTrackingSystem::AddPhysicsModel(const std::string& str_id,
-                                            CIridiaTrackingSystemModel& c_model) {
-      m_tPhysicsModels[str_id] = &c_model;
-      //m_pcITSModelIndex->AddEntity(c_model);
-   }
-
-   /****************************************/
-   /****************************************/
-
-   void CIridiaTrackingSystem::RemovePhysicsModel(const std::string& str_id) {
-      CIridiaTrackingSystemModel::TMap::iterator it = m_tPhysicsModels.find(str_id);
-      if(it != m_tPhysicsModels.end()) {
-         //m_pcITSModelIndex->RemoveEntity(*(it->second));
-         delete it->second;
-         m_tPhysicsModels.erase(it);
-      }
-      else {
-         THROW_ARGOSEXCEPTION("Model id \"" << str_id << "\" not found in Iridia tracking system \"" << GetId() << "\"");
-      }
-   }
-
-   /****************************************/
-   /****************************************/
-
-    CEmbodiedEntity* CIridiaTrackingSystem::CheckIntersectionWithRay(Real& f_t_on_ray,
-                                                                 const CRay3& c_ray) const {
-    	/*m_pcOperation->Setup(f_t_on_ray, c_ray);
-		m_pcITSModelIndex->ForEntitiesAlongRay(
-    	            c_ray,
-    	            *m_pcOperation,
-    	            false);
-//		return m_pcITSModelIndex->GetFirstCollision();
-		return m_pcOperation->GetFirstNonRobotCollision();*/
-
-    	f_t_on_ray=1.0f;
-    	CEmbodiedEntity* cFirstCollision = NULL;
-    	SBoundingBox sBoundingBox;
-    	sBoundingBox.MinCorner.SetX(Min<Real>(c_ray.GetStart().GetX(),c_ray.GetEnd().GetX()));
-    	sBoundingBox.MinCorner.SetY(Min<Real>(c_ray.GetStart().GetY(),c_ray.GetEnd().GetY()));
-    	sBoundingBox.MinCorner.SetZ(Min<Real>(c_ray.GetStart().GetZ(),c_ray.GetEnd().GetZ()));
-    	sBoundingBox.MaxCorner.SetX(Max<Real>(c_ray.GetStart().GetX(),c_ray.GetEnd().GetX()));
-    	sBoundingBox.MaxCorner.SetY(Max<Real>(c_ray.GetStart().GetY(),c_ray.GetEnd().GetY()));
-    	sBoundingBox.MaxCorner.SetZ(Max<Real>(c_ray.GetStart().GetZ(),c_ray.GetEnd().GetZ()));
-    	std::map<std::string, CIridiaTrackingSystemModel*>::const_iterator itPhysicsModels;
-		for (itPhysicsModels = m_tPhysicsModels.begin(); itPhysicsModels != m_tPhysicsModels.end(); itPhysicsModels++) {
-			// if the ray intersect bounding box of the model, potential intersection
-			//LOG<<"BOUNDING BOX INTERSECT? "<< (sBoundingBox.Intersects((*itPhysicsModels).second->GetBoundingBox()))<<"\n";
-			if(sBoundingBox.Intersects((*itPhysicsModels).second->GetBoundingBox()))
-			{
-				if ((*itPhysicsModels).second->GetEmbodiedEntity().GetParent().GetTypeDescription() =="box"
-						|| (*itPhysicsModels).second->GetEmbodiedEntity().GetParent().GetTypeDescription() == "cylinder"){
-					//LOG<<"BOUNDING BOX INTERSECT: "<< (*itPhysicsModels).second->GetEmbodiedEntity().GetParent().GetTypeDescription() <<"\n";
-
-					Real fTOnRay;
-					CEmbodiedEntity* cCollision = (*itPhysicsModels).second->CheckIntersectionWithRay(fTOnRay, c_ray);
-					//Delegate to the model to look for an intersection
-					if (cCollision){
-						if (fTOnRay < f_t_on_ray){
-							f_t_on_ray = fTOnRay;
-							cFirstCollision = cCollision;
-						}
-					}
-				}
-			}
-		}
-		return cFirstCollision;
-    }
-
-    /****************************************/
-    /****************************************/
-
-    void CIridiaTrackingSystem::CheckIntersectionWithRay(TEmbodiedEntityIntersectionData& t_data, const CRay3& c_ray) const {
-      //CEmbodiedEntity* cFirstCollision = NULL; unused variable
-      SBoundingBox sBoundingBox;
-      sBoundingBox.MinCorner.SetX(Min<Real>(c_ray.GetStart().GetX(),c_ray.GetEnd().GetX()));
-      sBoundingBox.MinCorner.SetY(Min<Real>(c_ray.GetStart().GetY(),c_ray.GetEnd().GetY()));
-      sBoundingBox.MinCorner.SetZ(Min<Real>(c_ray.GetStart().GetZ(),c_ray.GetEnd().GetZ()));
-      sBoundingBox.MaxCorner.SetX(Max<Real>(c_ray.GetStart().GetX(),c_ray.GetEnd().GetX()));
-      sBoundingBox.MaxCorner.SetY(Max<Real>(c_ray.GetStart().GetY(),c_ray.GetEnd().GetY()));
-      sBoundingBox.MaxCorner.SetZ(Max<Real>(c_ray.GetStart().GetZ(),c_ray.GetEnd().GetZ()));
-      std::map<std::string, CIridiaTrackingSystemModel*>::const_iterator itPhysicsModels;
-      for (itPhysicsModels = m_tPhysicsModels.begin(); itPhysicsModels != m_tPhysicsModels.end(); itPhysicsModels++) {
-        if(sBoundingBox.Intersects((*itPhysicsModels).second->GetBoundingBox())) {
-          if ((*itPhysicsModels).second->GetEmbodiedEntity().GetParent().GetTypeDescription() =="box"
-            || (*itPhysicsModels).second->GetEmbodiedEntity().GetParent().GetTypeDescription() == "cylinder"){
-              Real fTOnRay;
-            CEmbodiedEntity* cCollision = (*itPhysicsModels).second->CheckIntersectionWithRay(fTOnRay, c_ray);
-            //Delegate to the model to look for an intersection
-            if (cCollision){
-                t_data.push_back(SEmbodiedEntityIntersectionItem(cCollision, fTOnRay));
-              }
-          }
+    void CIridiaTrackingSystem::CheckIntersectionWithRay(TEmbodiedEntityIntersectionData &t_data, const CRay3 &c_ray) const {
+        SBoundingBox sBoundingBox;
+        sBoundingBox.MinCorner.SetX(Min<Real>(c_ray.GetStart().GetX(), c_ray.GetEnd().GetX()));
+        sBoundingBox.MinCorner.SetY(Min<Real>(c_ray.GetStart().GetY(), c_ray.GetEnd().GetY()));
+        sBoundingBox.MinCorner.SetZ(Min<Real>(c_ray.GetStart().GetZ(), c_ray.GetEnd().GetZ()));
+        sBoundingBox.MaxCorner.SetX(Max<Real>(c_ray.GetStart().GetX(), c_ray.GetEnd().GetX()));
+        sBoundingBox.MaxCorner.SetY(Max<Real>(c_ray.GetStart().GetY(), c_ray.GetEnd().GetY()));
+        sBoundingBox.MaxCorner.SetZ(Max<Real>(c_ray.GetStart().GetZ(), c_ray.GetEnd().GetZ()));
+        std::map<std::string, CIridiaTrackingSystemModel *>::const_iterator itPhysicsModels;
+        for (itPhysicsModels = m_tPhysicsModels.begin(); itPhysicsModels != m_tPhysicsModels.end(); itPhysicsModels++) {
+            if (sBoundingBox.Intersects((*itPhysicsModels).second->GetBoundingBox())) {
+                if ((*itPhysicsModels).second->GetEmbodiedEntity().GetParent().GetTypeDescription() == "box"
+                    || (*itPhysicsModels).second->GetEmbodiedEntity().GetParent().GetTypeDescription() == "cylinder") {
+                    Real fTOnRay;
+                    CEmbodiedEntity *cCollision = (*itPhysicsModels).second->CheckIntersectionWithRay(fTOnRay, c_ray);
+                    //Delegate to the model to look for an intersection
+                    if (cCollision) {
+                        t_data.push_back(SEmbodiedEntityIntersectionItem(cCollision, fTOnRay));
+                    }
+                }
+            }
         }
-      }
     }
 
     /****************************************/
     /****************************************/
 
-    void CIridiaTrackingSystem::InitArenaState()
-    {
+    void CIridiaTrackingSystem::InitArenaState() {
         // A list of the state of all the robots declared in the XML configuration file
-        std::vector<TRobotState> vecXMLDeclaredInitialArenaState;
+        std::vector <TRobotState> vecXMLDeclaredInitialArenaState;
 
         // For each physics model
-        for(CIridiaTrackingSystemModel::TMap::iterator it = m_tPhysicsModels.begin();
-            it != m_tPhysicsModels.end(); ++it)
-        {
+        for (CIridiaTrackingSystemModel::TMap::iterator it = m_tPhysicsModels.begin();
+             it != m_tPhysicsModels.end(); ++it) {
             // Does the model is a footbot or an epuck?
-        	if ((it->second->GetEmbodiedEntity().GetParent().GetTypeDescription() == "epuck")
-        			|| (it->second->GetEmbodiedEntity().GetParent().GetTypeDescription() == "foot-bot")){
-				// Get its Argos ID
-				// The Argos ID is the ID of the robot as defined in the XML file.
-				// The name must contain an arbitrary string - underscore - robot tag (ITS ID) - underscore - robot ID
-				std::string strArgosId = it->first;
-				// Tokenize it
-				std::vector<std::string> vecTokens;
-				std::stringstream cStringStream(strArgosId);
-				std::string strToken;
-				while (std::getline(cStringStream, strToken, '_')) {
-					vecTokens.push_back(strToken);
-				}
+            if ((it->second->GetEmbodiedEntity().GetParent().GetTypeDescription() == "epuck")
+                || (it->second->GetEmbodiedEntity().GetParent().GetTypeDescription() == "foot-bot")) {
+                // Get its Argos ID
+                // The Argos ID is the ID of the robot as defined in the XML file.
+                // The name must contain an arbitrary string - underscore - robot tag (ITS ID) - underscore - robot ID
+                std::string strArgosId = it->first;
+                // Tokenize it
+                std::vector <std::string> vecTokens;
+                std::stringstream cStringStream(strArgosId);
+                std::string strToken;
+                while (std::getline(cStringStream, strToken, '_')) {
+                    vecTokens.push_back(strToken);
+                }
 
                 if (vecTokens.size() < 2) {
                     LOGERR << "[ERROR] Expected two ID tokens in robot identifier, but found only " << vecTokens.size() << std::endl;
@@ -486,31 +431,27 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
                     LOGERR << "[ERROR] Make sure that all robot identifiers follow the form [robot type]_[ITS ID]_[robot ID]" << std::endl;
                 }
                 // Convert ITS ID in int form
-				UInt32 unITSId = FromString<UInt32>(vecTokens[vecTokens.size()-2]);
-				//CArenaStateStruct::TRobotState tRobotState(std::make_pair<UInt32, CArenaStateStruct::SRealWorldCoordinates>
-                CArenaStateStruct::TRobotState tRobotState(std::make_pair
-						(unITSId, CArenaStateStruct::SRealWorldCoordinates(it->second->GetEmbodiedEntity().GetOriginAnchor().Position + m_cArenaCenter3D,
-																		   it->second->GetEmbodiedEntity().GetOriginAnchor().Orientation,
-																		   (UInt32)0)));
-
+                UInt32 unITSId = FromString<UInt32>(vecTokens[vecTokens.size() - 2]);
+                CArenaStateStruct::TRobotState tRobotState(std::make_pair(unITSId, CArenaStateStruct::SRealWorldCoordinates(
+                                                                          it->second->GetEmbodiedEntity().GetOriginAnchor().Position +
+                                                                          m_cArenaCenter3D,
+                                                                          it->second->GetEmbodiedEntity().GetOriginAnchor().Orientation,
+                                                                          (UInt32) 0)));
                 // Convert robot ID in int form
-				UInt32 unRobotId = FromString<UInt32>(vecTokens[vecTokens.size()-1]);
+                UInt32 unRobotId = FromString<UInt32>(vecTokens[vecTokens.size() - 1]);
 
-				// Create a pair <ITS ID, RObot ID>
-				//std::pair<UInt32, UInt32> pairITSIdRobotId = std::make_pair<UInt32, UInt32>(unITSId, unRobotId);
-                std::pair<UInt32, UInt32> pairITSIdRobotId = std::make_pair(unITSId, unRobotId);
-				//DEBUG("push back id %s\n", strArgosId.c_str());
-				// Fill the Robot ID Table
-				//m_tTableRobotId->insert(std::make_pair<std::string, std::pair<UInt32, UInt32> >(strArgosId, pairITSIdRobotId));
+                // Create a pair <ITS ID, RObot ID>
+                std::pair <UInt32, UInt32> pairITSIdRobotId = std::make_pair(unITSId, unRobotId);
+                // Fill the Robot ID Table
                 m_tTableRobotId->insert(std::make_pair(strArgosId, pairITSIdRobotId));
-				// Fill another vector with robot tag only
-				m_vecUsedRobotTagList.push_back(tRobotState.first);
-				// Fill a vector with robot state
-				vecXMLDeclaredInitialArenaState.push_back(tRobotState);
-        	}
+                // Fill another vector with robot tag only
+                m_vecUsedRobotTagList.push_back(tRobotState.first);
+                // Fill a vector with robot state
+                vecXMLDeclaredInitialArenaState.push_back(tRobotState);
+            }
 
         }
-
+        // TODO: Init Arena Struct here?
         // Set the Initial Arena State as it is defined in the XML configuration file
         m_cArenaStateStruct.SetInitalArenaState(vecXMLDeclaredInitialArenaState);
         // If the experiment is simulated no need to wait for Tracking System information merge

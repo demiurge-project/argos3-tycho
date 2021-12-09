@@ -3,8 +3,7 @@
 # argos its client headers
 #
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_IRIDIA_TRACKING_SYSTEM_ARGOS_ITS_CLIENT
-    argos_its_client/argos_its_client_thread.h
-    argos_its_client/arena_state_struct.h
+        argos_its_client/arena_state_struct.h
 
 )
 #
@@ -12,8 +11,7 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_IRIDIA_TRACKING_SYSTEM_ARGO
 #
 set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_IRIDIA_TRACKING_SYSTEM
     ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_IRIDIA_TRACKING_SYSTEM_ARGOS_ITS_CLIENT}
-    argos_its_client/argos_its_client_thread.cpp
-    argos_its_client/arena_state_struct.cpp
+        argos_its_client/arena_state_struct.cpp
 )
 #
 # Install location for the argos its client headers
