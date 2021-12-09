@@ -138,6 +138,7 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
         if (m_bRealExperiment) {
             pthread_create(&m_cThread, NULL, (void * (*) (void *)) &argos::CIridiaTrackingSystem::start, (void *)m_cClient);
         }
+
         //init ROS
         if(!ros::isInitialized())
         {
@@ -155,6 +156,7 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
             ros::init(argc, argv, "automode");
 
             ros::NodeHandle rosNode;
+            timeSubscriber = rosNode.subscribe("/epuck0/time", 1000, timeCallback);
 
             std::stringstream ss;
             for (int j = 0; j < 40; j++)
@@ -213,6 +215,10 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
                 //behaviorSubscriber[j]  = rosNode.subscribe(ss.str(), 10, &ReferenceModel3Dot0::handlerBehavior, this);
             }
         }
+    }
+
+    void CIridiaTrackingSystem::timeCallback(const std_msgs::Time::ConstPtr& msg) {
+        LOG << msg->data.sec << std::endl;
     }
 
     /****************************************/
@@ -308,6 +314,7 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
     /****************************************/
 
     void CIridiaTrackingSystem::Update() {
+        ros::spinOnce();
 	// Get data from the tracking system
     // For-loop through the models to call
 

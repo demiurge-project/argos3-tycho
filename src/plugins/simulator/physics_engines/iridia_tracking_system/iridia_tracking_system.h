@@ -59,6 +59,7 @@ namespace argos {
 #include "ros/ros.h"
 #include <sensor_msgs/Range.h>
 #include <std_msgs/ColorRGBA.h>
+#include <std_msgs/Time.h>
 
 
 namespace argos {
@@ -174,6 +175,10 @@ namespace argos {
             }
             return false;
         }
+
+        static void timeCallback(const std_msgs::Time::ConstPtr& msg);
+
+        ros::Subscriber timeSubscriber;
 
     private:
 
