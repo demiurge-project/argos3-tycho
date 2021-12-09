@@ -220,6 +220,7 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
 
     void CIridiaTrackingSystem::Reset()
     {
+        /*
         if (IsUsingResultsFile()) {
             m_cClient->OpenResultsFile(m_strResultsFile);
             m_bRealExperiment = false;
@@ -242,6 +243,7 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
 
         //Reset the index
         //m_pcITSModelIndex->Reset();
+         */
     }
 
     /****************************************/
@@ -268,6 +270,8 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
 
         // Set the initial arena state as describe in the XML configuration file
         InitArenaState();
+
+        /*
 
         // Notify the clients to move towards the target
         //m_cVirtualSensorServer.ReplaceRobots();
@@ -296,6 +300,8 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
         m_cArenaStateStruct.ResetTimestepCounter();
         // Init first values of the index
         //m_pcITSModelIndex->Update();
+
+         */
     }
 
     /****************************************/
@@ -307,6 +313,7 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
 
         //DEBUG_FUNCTION_ENTER;
 
+        /*
         // If a results file is used, get the next line and forget all the rest
         if (IsUsingResultsFile()) {
             if (m_cClient->GetNextArenaStateFromResultsFile()) {
@@ -362,7 +369,7 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
         }
 
         //m_pcITSModelIndex->Update();
-
+*/
         //DEBUG_FUNCTION_EXIT;
 
     }
@@ -593,7 +600,7 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
         for(CIridiaTrackingSystemModel::TMap::iterator it = m_tPhysicsModels.begin();
             it != m_tPhysicsModels.end(); ++it)
         {
-        	// Does the model is a footbot or an epuck?
+            // Does the model is a footbot or an epuck?
         	if ((it->second->GetEmbodiedEntity().GetParent().GetTypeDescription() == "epuck")
         			|| (it->second->GetEmbodiedEntity().GetParent().GetTypeDescription() == "foot-bot")){
 				// Get its Argos ID
@@ -608,7 +615,12 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
 					vecTokens.push_back(strToken);
 				}
 
-				// Convert ITS ID in int form
+                if (vecTokens.size() < 2) {
+                    LOGERR << "[ERROR] Expected two ID tokens in robot identifier, but found only " << vecTokens.size() << std::endl;
+                    LOGERR << "[ERROR] The full robot identifier was " << strArgosId << std::endl;
+                    LOGERR << "[ERROR] Make sure that all robot identifiers follow the form [robot type]_[ITS ID]_[robot ID]" << std::endl;
+                }
+                // Convert ITS ID in int form
 				UInt32 unITSId = FromString<UInt32>(vecTokens[vecTokens.size()-2]);
 				//CArenaStateStruct::TRobotState tRobotState(std::make_pair<UInt32, CArenaStateStruct::SRealWorldCoordinates>
                 CArenaStateStruct::TRobotState tRobotState(std::make_pair
@@ -616,7 +628,7 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
 																		   it->second->GetEmbodiedEntity().GetOriginAnchor().Orientation,
 																		   (UInt32)0)));
 
-				// Convert robot ID in int form
+                // Convert robot ID in int form
 				UInt32 unRobotId = FromString<UInt32>(vecTokens[vecTokens.size()-1]);
 
 				// Create a pair <ITS ID, RObot ID>
