@@ -119,37 +119,9 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
         m_cArenaCenter3D.SetX(fArenaCenterX);
         m_cArenaCenter3D.SetY(fArenaCenterY);
 
-        // Check whether there is a results file as input
-        try {
-            GetNodeAttributeOrDefault<std::string>(t_tree, "results_file", m_strResultsFile, m_strResultsFile);
-            if (IsUsingResultsFile()) {
-                m_cClient->OpenResultsFile(m_strResultsFile);
-                m_bRealExperiment = false;
-            }
-        }
-        catch(CARGoSException& ex) {
-           THROW_ARGOSEXCEPTION_NESTED("Failed to initialize its physics engines. Parse error in results_file.", ex);
-        }
-
-        // Creates the instance of the Argos ITS Client Thread
-        m_cClient = new CArgosITSClientThread(this, m_strITSServerAddress, m_unITSServerPort);
-
-        // Spawn the thread if the experiment is set real in the configuration file
-        if (m_bRealExperiment) {
-            pthread_create(&m_cThread, NULL, (void * (*) (void *)) &argos::CIridiaTrackingSystem::start, (void *)m_cClient);
-        }
-
-        //init ROS
+        // Init ROS
         if(!ros::isInitialized())
         {
-            ros::Publisher proximityPublishers[40][8];
-            ros::Publisher groundPublishers[40][3];
-            sensor_msgs::Range proximityMsgs[40][8];
-            ros::Publisher lightPublishers[40][8];
-            ros::Publisher colorPublisher[40];
-            sensor_msgs::Range groundMsgs[40][3];
-            sensor_msgs::Range lightMsgs[40][8];
-
             //init ROS
             char** argv = NULL;
             int argc = 0;
@@ -158,61 +130,20 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
             ros::NodeHandle rosNode;
             timeSubscriber = rosNode.subscribe("/epuck0/time", 1000, timeCallback);
 
+            // TODO: Parameter for odometry topic and subscribe to topic
+
             std::stringstream ss;
             for (int j = 0; j < 40; j++)
             {
-                //init proximity and light
-                for (int i = 0; i < 8; i++)
-                {
-                    ss.str("");
-                    ss << "epuck" << j << "/proximity";
-                    proximityPublishers[j][i] = rosNode.advertise<sensor_msgs::Range>(ss.str(), 10);
-                    proximityMsgs[j][i].radiation_type = sensor_msgs::Range::INFRARED;
-                    ss.str("");
-                    ss << "epuck" << j << "/base_prox" << i;
-                    proximityMsgs[j][i].header.frame_id = ss.str();
-                    proximityMsgs[j][i].field_of_view = 0.26;
-                    proximityMsgs[j][i].min_range = 0;
-                    proximityMsgs[j][i].max_range = 1;
-
-                    ss.str("");
-                    ss << "epuck" << j << "/light";
-                    lightPublishers[j][i] = rosNode.advertise<sensor_msgs::Range>(ss.str(), 10);
-                    lightMsgs[j][i].radiation_type = sensor_msgs::Range::INFRARED;
-                    ss.str("");
-                    ss << "epuck" << j << "/base_light" << i;
-                    lightMsgs[j][i].header.frame_id = ss.str();
-                    lightMsgs[j][i].min_range = 0;
-                    lightMsgs[j][i].max_range = 1;
-                }
-
-                //init ground
-                for (int i = 0; i < 3; ++i)
-                {
-                    ss.str("");
-                    ss << "epuck" << j << "/ground";
-                    groundPublishers[j][i] = rosNode.advertise<sensor_msgs::Range>(ss.str(), 10);
-                    groundMsgs[j][i].radiation_type = sensor_msgs::Range::INFRARED;
-                    ss.str("");
-                    ss << "epuck" << j << "/base_ground" << i;
-                    groundMsgs[j][i].header.frame_id = ss.str();
-                    groundMsgs[j][i].min_range = 0;
-                    groundMsgs[j][i].max_range = 1;
-                }
-
                 //init color
 
                 ss.str("");
                 ss << "epuck" << j << "/color";
-                colorPublisher[j] = rosNode.advertise<std_msgs::ColorRGBA>(ss.str(), 10);
+                // colorPublisher[j] = rosNode.advertise<std_msgs::ColorRGBA>(ss.str(), 10);
 
                 //init color handler
                 //colorSubscriber[j]  = rosNode.subscribe("color", 10, &ReferenceModel3Dot0::handlerLED, this);
 
-                //init behavior handler
-                //ss.str("");
-                //ss << "epuck" << j << "/behavior";
-                //behaviorSubscriber[j]  = rosNode.subscribe(ss.str(), 10, &ReferenceModel3Dot0::handlerBehavior, this);
             }
         }
     }
@@ -226,44 +157,25 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
 
     void CIridiaTrackingSystem::Reset()
     {
-        /*
-        if (IsUsingResultsFile()) {
-            m_cClient->OpenResultsFile(m_strResultsFile);
-            m_bRealExperiment = false;
-        }
-
         // Notify the clients to move towards the target
-        //m_cVirtualSensorServer.ReplaceRobots();
+        // m_cVirtualSensorServer.ReplaceRobots();
         // ReplaceRobots contains SendAllVirtualSensorData in a loop
         // wait until all robots are back in place
 
         // Untrigger the Client Thread
-        m_cClient->TriggerTrakingSystem();
-        // Wait for the Arena State Init
-        while(!m_cArenaStateStruct.IsArenaStateInit()) {}
+        m_cClient->TriggerTrakingSystem();  // TODO: Check what this is doing
         // Update the physics engine
         Update();
         // Set the step counter to 0
         m_cArenaStateStruct.ResetTimestepCounter();
         // Ready for a new run of experiment
-
-        //Reset the index
-        //m_pcITSModelIndex->Reset();
-         */
     }
 
     /****************************************/
     /****************************************/
 
     void CIridiaTrackingSystem::Destroy() {
-        // Disconnect to tracking system
-        m_cClient->DisconnectFromITSServer();
-        // Cancel threads
-        // The thread will terminate itself
-        /*delete m_pcITSModelIndex;
-        if(m_pcITSModelGridUpdateOperation != NULL) {
-            delete m_pcITSModelGridUpdateOperation;
-        }*/
+        // TODO: Disconnect from ROS?
     }
 
     /****************************************/
@@ -271,25 +183,13 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
 
     void CIridiaTrackingSystem::PostSpaceInit()
     {
-
-        //DEBUG("Number of physics models = %d\n", GetNumPhysicsEngineEntities());
-
         // Set the initial arena state as describe in the XML configuration file
         InitArenaState();
-
-        /*
 
         // Notify the clients to move towards the target
         //m_cVirtualSensorServer.ReplaceRobots();
         // ReplaceRobots contains SendAllVirtualSensorData in a loop
         // wait until all robots are back in place
-
-        // If the experiment is a Real Experiment
-        if (m_bRealExperiment) {
-            // Wait for the Merged Arena State to be ready
-            while (!m_cArenaStateStruct.IsArenaStateInit()) {}
-        }
-
 
         // If the VSS is enabled, then launch it
         if (m_bRealExperiment) {
@@ -304,80 +204,37 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
 
         // Set the step counter to 0
         m_cArenaStateStruct.ResetTimestepCounter();
-        // Init first values of the index
-        //m_pcITSModelIndex->Update();
-
-         */
     }
 
     /****************************************/
     /****************************************/
 
     void CIridiaTrackingSystem::Update() {
+        // Refresh ROS
         ros::spinOnce();
-	// Get data from the tracking system
-    // For-loop through the models to call
 
-        //DEBUG_FUNCTION_ENTER;
-
-        /*
-        // If a results file is used, get the next line and forget all the rest
-        if (IsUsingResultsFile()) {
-            if (m_cClient->GetNextArenaStateFromResultsFile()) {
-                // For each physics model, call the UpdateEntityStatus
-                for(CIridiaTrackingSystemModel::TMap::iterator it = m_tPhysicsModels.begin();
-                    it != m_tPhysicsModels.end(); ++it)
-                {
-                   //DEBUG("Updating robot id: %s\n", it->first.c_str());
-                   it->second->UpdateEntityStatus();
-                   m_cVirtualSensorServer.SwapBuffers((*m_tTableRobotId->find(it->first)).second.second);
-                }
-            }
-            else {
-                TerminateExperiment();
-                //DEBUG_FUNCTION_EXIT;
-                return;
-            }
-
-            m_cClient->WriteFilteredArenaState();
-
-
-        }
-        else {
-            // If this is the first step, start the Tracking System
-            if (m_cSpace.GetSimulationClock() == 1) {
-                m_cClient->TriggerTrakingSystem();
-                if (m_bRealExperiment) {
-                    m_cVirtualSensorServer.ExperimentStarted();
-                    m_cVirtualSensorServer.SendArgosSignal(1);
-                }
-            }
-
-            // For each physics model, call the UpdateEntityStatus
-            for(CIridiaTrackingSystemModel::TMap::iterator it = m_tPhysicsModels.begin();
-                it != m_tPhysicsModels.end(); ++it)
-            {
-               //DEBUG("Updating robot id: %s\n", it->first.c_str());
-
-               // Get readings from virtual sensors
-               it->second->UpdateEntityStatus();
-
-               // Swap the virtual sensor data double buffer
-               //if (m_bRealExperiment) {
-                   m_cVirtualSensorServer.SwapBuffers((*m_tTableRobotId->find(it->first)).second.second);
-               //}
-
-            }
-
-            // ... ask HERE the Virtual Sensor Server to send the data of all robots in a loop.
+        // If this is the first step, start the Tracking System
+        if (m_cSpace.GetSimulationClock() == 1) {
             if (m_bRealExperiment) {
-                m_cVirtualSensorServer.SendAllVirtualSensorData();
+                m_cVirtualSensorServer.ExperimentStarted();
+                m_cVirtualSensorServer.SendArgosSignal(1);
             }
         }
 
-        //m_pcITSModelIndex->Update();
-*/
-        //DEBUG_FUNCTION_EXIT;
+        // For each physics model, call the UpdateEntityStatus
+        for(CIridiaTrackingSystemModel::TMap::iterator it = m_tPhysicsModels.begin();
+            it != m_tPhysicsModels.end(); ++it)
+        {
+           // Get readings from virtual sensors
+           it->second->UpdateEntityStatus();  // TODO: Replace this with ROS?! -> set ArenaStateStruct with ROS Info
+
+           m_cVirtualSensorServer.SwapBuffers((*m_tTableRobotId->find(it->first)).second.second);
+        }
+
+        // ... ask HERE the Virtual Sensor Server to send the data of all robots in a loop.
+        if (m_bRealExperiment) {
+            m_cVirtualSensorServer.SendAllVirtualSensorData();
+        }
 
     }
 
@@ -386,22 +243,23 @@ class CITSModelCheckIntersectionOperation : public CPositionalIndex<CIridiaTrack
 
     void CIridiaTrackingSystem::PositionAndOrientationPhysicsToSpace(CVector3 &c_new_pos, CQuaternion &c_new_orient, std::string str_id)
     {
+        // TODO: Replace this with ROS!
         // Look for Id's conversion in ITS ids (tag)
         // Then look for that ITS id's position in the m_ptArenaState map
-
         TTableRobotId::iterator itHashRobotId;
-
         // If the robot is not detected by the Tracking System do not change its position
         // Otherwise...
         if ((itHashRobotId = m_tTableRobotId->find(str_id)) != m_tTableRobotId->end()) {
-
             CArenaStateStruct::SRealWorldCoordinates sRealWorldCoordinates;
             try {
+                UInt32 robotID = itHashRobotId->second.first;
                 // Get the updated state from the Arena State Struct
-                m_cArenaStateStruct.GetRobotState(sRealWorldCoordinates, (*itHashRobotId).second.first);
+                m_cArenaStateStruct.GetRobotState(sRealWorldCoordinates, robotID);
             }
             catch (CARGoSException ex) {
+                LOGERR << "[FATAL] Error when reading robot state for robot " << str_id << std::endl;
                 DEBUG("%s\n", ex.what());
+                throw;
             }
 
             // Set new position and orientation of the robot

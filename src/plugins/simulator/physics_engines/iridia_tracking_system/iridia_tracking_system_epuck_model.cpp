@@ -43,18 +43,12 @@ namespace argos {
    /****************************************/
 
    void CIridiaTrackingSystemEPuckModel::UpdateEntityStatus() {
-
        //DEBUG_FUNCTION_ENTER;
-
        CalculateBoundingBox();
-
+       // get the updated position and orientation from the tracking system
        m_cITS.PositionAndOrientationPhysicsToSpace(m_cArenaPosition, m_cArenaOrientation, m_cEPuckEntity.GetId());
-    //    m_cEmbodiedEntity.SetPosition(m_cArenaPosition);
-    //    m_cEmbodiedEntity.SetOrientation(m_cArenaOrientation);
-    GetEmbodiedEntity().GetOriginAnchor().Orientation = m_cArenaOrientation;
-    GetEmbodiedEntity().GetOriginAnchor().Position = m_cArenaPosition;
-
-
+       GetEmbodiedEntity().GetOriginAnchor().Orientation = m_cArenaOrientation;
+       GetEmbodiedEntity().GetOriginAnchor().Position = m_cArenaPosition;
        //DEBUG_FUNCTION_EXIT;
    }
 

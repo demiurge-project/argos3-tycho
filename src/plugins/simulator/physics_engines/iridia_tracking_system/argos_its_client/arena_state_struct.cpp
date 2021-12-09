@@ -509,12 +509,6 @@ namespace argos {
     bool CArenaStateStruct::IsUsedTagListInit()
     {
         return !m_vecUsedTagList.empty();
-        /*
-        if (m_vecUsedTagList.empty()) {
-            return false;
-        }
-        return true;
-        */
     }
 
     /****************************************/
@@ -525,14 +519,6 @@ namespace argos {
         //DEBUG_FUNCTION_ENTER;
         //DEBUG_FUNCTION_EXIT;
         return !m_ptCurrentArenaState->empty();
-        /*
-        if (m_ptCurrentArenaState->empty()) {
-            //DEBUG_FUNCTION_EXIT
-            return false;
-        }
-        //DEBUG_FUNCTION_EXIT;
-        return true;
-        */
     }
 
     /****************************************/
@@ -540,6 +526,10 @@ namespace argos {
 
     void CArenaStateStruct::GetRobotState(SRealWorldCoordinates & t_real_world_coordinates, UInt32 un_robot_tag)
     {
+        t_real_world_coordinates = *(new SRealWorldCoordinates());
+        return;
+
+
         TArenaState::iterator itArenaState;
 
         // Critical session
