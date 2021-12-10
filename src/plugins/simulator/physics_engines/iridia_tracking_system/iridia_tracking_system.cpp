@@ -131,39 +131,41 @@ namespace argos {
             int argc = 0;
             ros::init(argc, argv, "automode");
 
-            ros::NodeHandle rosNode;
-            timeSubscriber = rosNode.subscribe("/epuck1/time", 1000, &CIridiaTrackingSystem::timeCallback, this);
-
-            // TODO: Parameter for odometry topic and subscribe to topic
-
-            std::stringstream ss;
-            for (int j = 0; j < 40; j++) {
-                //init color
-
-                ss.str("");
-                ss << "epuck" << j << "/color";
-                // colorPublisher[j] = rosNode.advertise<std_msgs::ColorRGBA>(ss.str(), 10);
-
-                //init color handler
-                //colorSubscriber[j]  = rosNode.subscribe("color", 10, &ReferenceModel3Dot0::handlerLED, this);
-
-            }
+            // TODO: Parameter for odometry topic
         }
     }
 
-    void CIridiaTrackingSystem::timeCallback(const ros::MessageEvent<std_msgs::Time const>& event) {
-        // TODO: Make this a callback for odometry
-        // TODO: Write position into ArenaStruct
-        const std_msgs::TimeConstPtr& msg = event.getMessage();
-        // LOG << msg->data.sec << std::endl;
+    void CIridiaTrackingSystem::CreateOdomSubscribers() {
+        std::stringstream topic;
+        for (int j = 0; j < 40; j++) {
+            //init color
+
+            topic.str("");
+            topic << "epuck" << j << "/odom";
+            // TODO: Parameter for odometry topic
+
+            // TODO: Create subscribers
+            // odomSubscriber[j] = rosNode.subscribe(topic, 1000, &CIridiaTrackingSystem::OdomCallback, this);
+        }
+    }
+
+    void CIridiaTrackingSystem::OdomCallback(const ros::MessageEvent<nav_msgs::Odometry const>& event) {
+        const nav_msgs::OdometryConstPtr& msg = event.getMessage();
+        // get the robot ID
         std::string topic = event.getConnectionHeader().at("topic");
         topic = topic.substr(1, topic.length()); // remove initial /
         topic = topic.substr(0, topic.find("/"));
         UInt32 robotID = std::stoi(topic.substr(5, topic.length())); // remove "epuck"
+        // get the position and orientation
         CArenaStateStruct::SRealWorldCoordinates coordinates = *(new CArenaStateStruct::SRealWorldCoordinates());
-        coordinates.cPosition[0] = (Real) counter/ 100.0f;
-        counter++;
-        // LOG <<  coordinates.cPosition[0] << std::endl;
+        coordinates.cPosition[0] = msg->pose.pose.position.x;
+        coordinates.cPosition[1] = msg->pose.pose.position.y;
+        coordinates.cPosition[2] = msg->pose.pose.position.z;
+        coordinates.cOrientation.SetX(msg->pose.pose.orientation.x);
+        coordinates.cOrientation.SetY(msg->pose.pose.orientation.y);
+        coordinates.cOrientation.SetZ(msg->pose.pose.orientation.z);
+        coordinates.cOrientation.SetW(msg->pose.pose.orientation.w);
+        // set the new information
         TRobotState robotState = *(new TRobotState(robotID, coordinates));
         m_cArenaStateStruct.SetRobotState(robotState);
     }
@@ -188,7 +190,7 @@ namespace argos {
     /****************************************/
 
     void CIridiaTrackingSystem::Destroy() {
-        // TODO: Disconnect from ROS?
+        // Disconnect from ROS?
     }
 
     /****************************************/
@@ -237,7 +239,7 @@ namespace argos {
         for (CIridiaTrackingSystemModel::TMap::iterator it = m_tPhysicsModels.begin();
              it != m_tPhysicsModels.end(); ++it) {
             // Get readings from virtual sensors
-            it->second->UpdateEntityStatus();  // TODO: Replace this with ROS?! -> set ArenaStateStruct with ROS Info
+            it->second->UpdateEntityStatus();
 
             m_cVirtualSensorServer.SwapBuffers((*m_tTableRobotId->find(it->first)).second.second);
         }
@@ -462,7 +464,6 @@ namespace argos {
             }
 
         }
-        // TODO: Init Arena Struct here?
         // Set the Initial Arena State as it is defined in the XML configuration file
         m_cArenaStateStruct.SetInitalArenaState(vecXMLDeclaredInitialArenaState);
     }

@@ -56,9 +56,7 @@ namespace argos {
 #include <pthread.h>
 
 #include "ros/ros.h"
-#include <sensor_msgs/Range.h>
-#include <std_msgs/ColorRGBA.h>
-#include <std_msgs/Time.h>
+#include <nav_msgs/Odometry.h>
 
 
 namespace argos {
@@ -175,9 +173,10 @@ namespace argos {
             return false;
         }
 
-        void timeCallback(const ros::MessageEvent<std_msgs::Time const>& event);
 
-        ros::Subscriber timeSubscriber;
+        void CreateOdomSubscribers();
+
+        void OdomCallback(const ros::MessageEvent<nav_msgs::Odometry const>& event);
 
     private:
 
@@ -263,6 +262,10 @@ namespace argos {
 		CITSModelCheckIntersectionOperation* m_pcOperation;
 
         UInt32 counter = 0;
+
+        ros::NodeHandle rosNode;
+
+        ros::Subscriber timeSubscriber;
 
     };
 
