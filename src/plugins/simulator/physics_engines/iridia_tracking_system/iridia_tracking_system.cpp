@@ -132,7 +132,7 @@ namespace argos {
             ros::init(argc, argv, "automode");
 
             ros::NodeHandle rosNode;
-            timeSubscriber = rosNode.subscribe("/epuck0/time", 1000, timeCallback);
+            timeSubscriber = rosNode.subscribe("/epuck0/time", 1000, &CIridiaTrackingSystem::timeCallback, this);
 
             // TODO: Parameter for odometry topic and subscribe to topic
 
@@ -151,10 +151,19 @@ namespace argos {
         }
     }
 
-    void CIridiaTrackingSystem::timeCallback(const std_msgs::Time::ConstPtr &msg) {
+    void CIridiaTrackingSystem::timeCallback(const ros::MessageEvent<std_msgs::Time const>& event) {
         // TODO: Make this a callback for odometry
         // TODO: Write position into ArenaStruct
+        const std_msgs::TimeConstPtr& msg = event.getMessage();
         LOG << msg->data.sec << std::endl;
+        std::string topic = event.getConnectionHeader().at("topic");
+        topic = topic.substr(1, topic.length()); // remove initial /
+        topic = topic.substr(0, topic.find("/"));
+        UInt32 robotID = std::stoi(topic.substr(5, topic.length())); // remove "epuck"
+        LOG << robotID << std::endl;
+        CArenaStateStruct::SRealWorldCoordinates coordinates = *(new CArenaStateStruct::SRealWorldCoordinates());
+        TRobotState robotState = *(new TRobotState(robotID, coordinates));
+        m_cArenaStateStruct.SetRobotState(robotState);
     }
 
     /****************************************/
@@ -454,11 +463,6 @@ namespace argos {
         // TODO: Init Arena Struct here?
         // Set the Initial Arena State as it is defined in the XML configuration file
         m_cArenaStateStruct.SetInitalArenaState(vecXMLDeclaredInitialArenaState);
-        // If the experiment is simulated no need to wait for Tracking System information merge
-        // Update the Arena State with the same state
-        if (!m_bRealExperiment) {
-            m_cArenaStateStruct.UpdateArenaState(vecXMLDeclaredInitialArenaState);
-        }
     }
 
     /****************************************/

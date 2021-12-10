@@ -175,7 +175,7 @@ namespace argos {
             return false;
         }
 
-        static void timeCallback(const std_msgs::Time::ConstPtr& msg);
+        void timeCallback(const ros::MessageEvent<std_msgs::Time const>& event);
 
         ros::Subscriber timeSubscriber;
 
