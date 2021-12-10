@@ -262,6 +262,8 @@ namespace argos {
 		/** Operation to check rays */
 		CITSModelCheckIntersectionOperation* m_pcOperation;
 
+        UInt32 counter = 0;
+
     };
 
     /****************************************/

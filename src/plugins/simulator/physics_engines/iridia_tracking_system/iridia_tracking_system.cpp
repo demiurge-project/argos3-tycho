@@ -132,7 +132,7 @@ namespace argos {
             ros::init(argc, argv, "automode");
 
             ros::NodeHandle rosNode;
-            timeSubscriber = rosNode.subscribe("/epuck0/time", 1000, &CIridiaTrackingSystem::timeCallback, this);
+            timeSubscriber = rosNode.subscribe("/epuck1/time", 1000, &CIridiaTrackingSystem::timeCallback, this);
 
             // TODO: Parameter for odometry topic and subscribe to topic
 
@@ -155,13 +155,15 @@ namespace argos {
         // TODO: Make this a callback for odometry
         // TODO: Write position into ArenaStruct
         const std_msgs::TimeConstPtr& msg = event.getMessage();
-        LOG << msg->data.sec << std::endl;
+        // LOG << msg->data.sec << std::endl;
         std::string topic = event.getConnectionHeader().at("topic");
         topic = topic.substr(1, topic.length()); // remove initial /
         topic = topic.substr(0, topic.find("/"));
         UInt32 robotID = std::stoi(topic.substr(5, topic.length())); // remove "epuck"
-        LOG << robotID << std::endl;
         CArenaStateStruct::SRealWorldCoordinates coordinates = *(new CArenaStateStruct::SRealWorldCoordinates());
+        coordinates.cPosition[0] = (Real) counter/ 100.0f;
+        counter++;
+        // LOG <<  coordinates.cPosition[0] << std::endl;
         TRobotState robotState = *(new TRobotState(robotID, coordinates));
         m_cArenaStateStruct.SetRobotState(robotState);
     }
