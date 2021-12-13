@@ -173,9 +173,14 @@ namespace argos {
             return false;
         }
 
-
+        /**
+         * @brief CreateOdomSubscribers Subscribes to the odometry topic of all robots.
+         */
         void CreateOdomSubscribers();
 
+        /**
+         * @brief OdomCallback The callback function for the odometry topics.
+         */
         void OdomCallback(const ros::MessageEvent<nav_msgs::Odometry const>& event);
 
     private:
@@ -261,9 +266,10 @@ namespace argos {
 		/** Operation to check rays */
 		CITSModelCheckIntersectionOperation* m_pcOperation;
 
-        UInt32 counter = 0;
 
-        ros::NodeHandle rosNode;
+        ros::NodeHandle* rosNode;
+
+        std::string m_strTopic;
 
         ros::Subscriber timeSubscriber;
 

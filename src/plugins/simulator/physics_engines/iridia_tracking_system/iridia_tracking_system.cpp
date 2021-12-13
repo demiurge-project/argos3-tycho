@@ -124,50 +124,23 @@ namespace argos {
         m_cArenaCenter3D.SetX(fArenaCenterX);
         m_cArenaCenter3D.SetY(fArenaCenterY);
 
+        // retrieve the topic name for the odometry topic
+        try {
+            GetNodeAttributeOrDefault<std::string>(t_tree, "topic", m_strTopic, "odom");
+        }
+        catch (CARGoSException &ex) {
+            THROW_ARGOSEXCEPTION_NESTED(
+                    "Failed to initialize its physics engines. Parse error in expected parameter \"topic\".", ex);
+        }
+
         // Init ROS
         if (!ros::isInitialized()) {
             //init ROS
             char **argv = NULL;
             int argc = 0;
             ros::init(argc, argv, "automode");
-
-            // TODO: Parameter for odometry topic
+            rosNode = new ros::NodeHandle();
         }
-    }
-
-    void CIridiaTrackingSystem::CreateOdomSubscribers() {
-        std::stringstream topic;
-        for (int j = 0; j < 40; j++) {
-            //init color
-
-            topic.str("");
-            topic << "epuck" << j << "/odom";
-            // TODO: Parameter for odometry topic
-
-            // TODO: Create subscribers
-            // odomSubscriber[j] = rosNode.subscribe(topic, 1000, &CIridiaTrackingSystem::OdomCallback, this);
-        }
-    }
-
-    void CIridiaTrackingSystem::OdomCallback(const ros::MessageEvent<nav_msgs::Odometry const>& event) {
-        const nav_msgs::OdometryConstPtr& msg = event.getMessage();
-        // get the robot ID
-        std::string topic = event.getConnectionHeader().at("topic");
-        topic = topic.substr(1, topic.length()); // remove initial /
-        topic = topic.substr(0, topic.find("/"));
-        UInt32 robotID = std::stoi(topic.substr(5, topic.length())); // remove "epuck"
-        // get the position and orientation
-        CArenaStateStruct::SRealWorldCoordinates coordinates = *(new CArenaStateStruct::SRealWorldCoordinates());
-        coordinates.cPosition[0] = msg->pose.pose.position.x;
-        coordinates.cPosition[1] = msg->pose.pose.position.y;
-        coordinates.cPosition[2] = msg->pose.pose.position.z;
-        coordinates.cOrientation.SetX(msg->pose.pose.orientation.x);
-        coordinates.cOrientation.SetY(msg->pose.pose.orientation.y);
-        coordinates.cOrientation.SetZ(msg->pose.pose.orientation.z);
-        coordinates.cOrientation.SetW(msg->pose.pose.orientation.w);
-        // set the new information
-        TRobotState robotState = *(new TRobotState(robotID, coordinates));
-        m_cArenaStateStruct.SetRobotState(robotState);
     }
 
     /****************************************/
@@ -200,10 +173,8 @@ namespace argos {
         // Set the initial arena state as describe in the XML configuration file
         InitArenaState();
 
-        // Notify the clients to move towards the target
-        //m_cVirtualSensorServer.ReplaceRobots();
-        // ReplaceRobots contains SendAllVirtualSensorData in a loop
-        // wait until all robots are back in place
+        // Subscribe to the topics of the robots
+        CreateOdomSubscribers();
 
         // If the VSS is enabled, then launch it
         if (m_bRealExperiment) {
@@ -466,6 +437,46 @@ namespace argos {
         }
         // Set the Initial Arena State as it is defined in the XML configuration file
         m_cArenaStateStruct.SetInitalArenaState(vecXMLDeclaredInitialArenaState);
+    }
+
+    /****************************************/
+    /****************************************/
+
+    void CIridiaTrackingSystem::CreateOdomSubscribers() {
+        std::stringstream topic;
+        for (int j = 0; j < 40; j++) {
+            //init color
+
+            topic.str("");
+            topic << "epuck" << j << "/" << m_strTopic;
+
+            // TODO: Create subscribers
+            // odomSubscriber[j] = rosNode.subscribe(topic, 1000, &CIridiaTrackingSystem::OdomCallback, this);
+        }
+    }
+
+    /****************************************/
+    /****************************************/
+
+    void CIridiaTrackingSystem::OdomCallback(const ros::MessageEvent<nav_msgs::Odometry const>& event) {
+        const nav_msgs::OdometryConstPtr& msg = event.getMessage();
+        // get the robot ID
+        std::string topic = event.getConnectionHeader().at("topic");
+        topic = topic.substr(1, topic.length()); // remove initial /
+        topic = topic.substr(0, topic.find("/"));
+        UInt32 robotID = std::stoi(topic.substr(5, topic.length())); // remove "epuck"
+        // get the position and orientation
+        CArenaStateStruct::SRealWorldCoordinates coordinates = *(new CArenaStateStruct::SRealWorldCoordinates());
+        coordinates.cPosition[0] = msg->pose.pose.position.x;
+        coordinates.cPosition[1] = msg->pose.pose.position.y;
+        coordinates.cPosition[2] = msg->pose.pose.position.z;
+        coordinates.cOrientation.SetX(msg->pose.pose.orientation.x);
+        coordinates.cOrientation.SetY(msg->pose.pose.orientation.y);
+        coordinates.cOrientation.SetZ(msg->pose.pose.orientation.z);
+        coordinates.cOrientation.SetW(msg->pose.pose.orientation.w);
+        // set the new information
+        TRobotState robotState = *(new TRobotState(robotID, coordinates));
+        m_cArenaStateStruct.SetRobotState(robotState);
     }
 
     /****************************************/
