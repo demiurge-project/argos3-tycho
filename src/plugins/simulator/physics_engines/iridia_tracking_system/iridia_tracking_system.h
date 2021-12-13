@@ -233,7 +233,7 @@ namespace argos {
 
         std::string m_strTopic;
 
-        ros::Subscriber timeSubscriber;
+        std::map<UInt32, ros::Subscriber> odomSubscribers;
 
     };
 

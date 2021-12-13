@@ -99,7 +99,7 @@
             <body orientation="0,0,0" position="-0.2,0.2,0" />
             <controller config="automode" />
           </e-puck>
-          <!--e-puck id="epuck_11_33">
+          <e-puck id="epuck_11_33">
             <body orientation="0,0,0" position="-0.1,0.2,0" />
             <controller config="automode" />
           </e-puck>
@@ -174,7 +174,7 @@
           <e-puck id="epuck_19_89">
             <body orientation="0,0,0" position="0.2,-0.2,0" />
             <controller config="automode" />
-          </e-puck-->
+          </e-puck>
     </arena>
 
     <!-- ******************* -->

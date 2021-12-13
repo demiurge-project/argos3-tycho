@@ -53,7 +53,6 @@ namespace argos {
     {
         // m_tArenaState.insert(t_robot_state);
         m_tArenaState[t_robot_state.first] = t_robot_state.second;
-        LOG << t_robot_state.first << " " << m_tArenaState[t_robot_state.first].cPosition[0] << std::endl;
     }
 
     /****************************************/
@@ -109,7 +108,6 @@ namespace argos {
         // Set the output parameter
         if (itArenaState != m_tArenaState.end()) {
             t_real_world_coordinates = (*itArenaState).second;
-            LOG << t_real_world_coordinates.cPosition[0] << std::endl;
         }
         else {
             THROW_ARGOSEXCEPTION("ERROR: robot not found in arena state\n");

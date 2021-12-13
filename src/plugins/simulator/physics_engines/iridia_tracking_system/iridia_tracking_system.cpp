@@ -433,15 +433,17 @@ namespace argos {
 
     void CIridiaTrackingSystem::CreateOdomSubscribers() {
         std::stringstream topic;
+
+        for(std::vector<UInt32>::iterator it = std::begin(m_vecUsedRobotTagList); it != std::end(m_vecUsedRobotTagList); ++it) {
+            //init color
+            topic.str("");
+            topic << "/epuck" << *it << "/" << m_strTopic;
+            LOG << topic.str() << std::endl;
+            odomSubscribers[*it] = rosNode->subscribe(topic.str(), 1000, &CIridiaTrackingSystem::OdomCallback, this);
+        }
         // m_vecUsedRobotTagList
         for (int j = 0; j < 40; j++) {
-            //init color
 
-            topic.str("");
-            topic << "epuck" << j << "/" << m_strTopic;
-
-            // TODO: Create subscribers
-            // odomSubscriber[j] = rosNode.subscribe(topic, 1000, &CIridiaTrackingSystem::OdomCallback, this);
         }
     }
 
