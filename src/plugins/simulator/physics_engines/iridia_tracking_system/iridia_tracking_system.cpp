@@ -65,15 +65,12 @@ namespace argos {
     /****************************************/
 
     CIridiaTrackingSystem::CIridiaTrackingSystem() :
-            m_cThread(),
             m_cSimulator(CSimulator::GetInstance()),
             m_cSpace(m_cSimulator.GetSpace()),
-            m_unITSServerPort(4040),
             m_cVirtualSensorServer(CVirtualSensorServer::GetInstance()),
             m_cArenaStateStruct(CArenaStateStruct::GetInstance()),
             m_cArenaCenter3D(),
-            m_bRealExperiment(true),
-            m_strResultsFile("") {
+            m_bRealExperiment(true) {
         m_tTableRobotId = new std::map <std::string, std::pair<UInt32, UInt32>>();
     }
 
@@ -84,14 +81,6 @@ namespace argos {
         CPhysicsEngine::Init(t_tree);
 
         // Parse XML file and collect information
-        try {
-            GetNodeAttributeOrDefault<std::string>(t_tree, "its_host", m_strITSServerAddress, "169.254.0.200");
-            GetNodeAttributeOrDefault<UInt32>(t_tree, "its_port", m_unITSServerPort, m_unITSServerPort);
-        }
-        catch (CARGoSException &ex) {
-            THROW_ARGOSEXCEPTION_NESTED("Failed to initialize its physics engines. Parse error in its_host, its_port.",
-                                        ex);
-        }
         try {
             GetNodeAttributeOrDefault(t_tree, "real_experiment", m_bRealExperiment, m_bRealExperiment);
         }
@@ -424,7 +413,7 @@ namespace argos {
                 // Convert robot ID in int form
                 UInt32 unRobotId = FromString<UInt32>(vecTokens[vecTokens.size() - 1]);
 
-                // Create a pair <ITS ID, RObot ID>
+                // Create a pair <ITS ID, Robot ID>
                 std::pair <UInt32, UInt32> pairITSIdRobotId = std::make_pair(unITSId, unRobotId);
                 // Fill the Robot ID Table
                 m_tTableRobotId->insert(std::make_pair(strArgosId, pairITSIdRobotId));
@@ -444,6 +433,7 @@ namespace argos {
 
     void CIridiaTrackingSystem::CreateOdomSubscribers() {
         std::stringstream topic;
+        // m_vecUsedRobotTagList
         for (int j = 0; j < 40; j++) {
             //init color
 

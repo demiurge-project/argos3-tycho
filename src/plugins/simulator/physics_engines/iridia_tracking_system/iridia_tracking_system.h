@@ -133,13 +133,6 @@ namespace argos {
         /*************************************/
 
         /**
-         * @brief start The trigger method for the Argos ITS Client Thread
-         * @param p
-         * @return
-         */
-        static void *start(void* p);
-
-        /**
          * @brief PositionAndOrientationPhysicsToSpace Sets position and orientation of the robot at once
          * @param c_new_pos The new given position
          * @param c_new_orient The new given orientation
@@ -165,14 +158,6 @@ namespace argos {
          */
         void InitArenaState();
 
-        inline bool IsUsingResultsFile()
-        {
-            if (m_strResultsFile.length()>0) {
-                return true;
-            }
-            return false;
-        }
-
         /**
          * @brief CreateOdomSubscribers Subscribes to the odometry topic of all robots.
          */
@@ -191,11 +176,6 @@ namespace argos {
         std::map<std::string, CIridiaTrackingSystemModel*> m_tPhysicsModels;
 
         /**
-         * @brief m_cThread The thread on which the Client is running
-         */
-        pthread_t m_cThread;
-
-        /**
          * @brief m_cSimulator A reference to the CSimulator instance
          */
         CSimulator& m_cSimulator;
@@ -209,16 +189,6 @@ namespace argos {
          * @brief m_vecUsedRobotTagList List of all the tags used in the experiment
          */
         std::vector<UInt32> m_vecUsedRobotTagList;
-
-        /**
-         * @brief m_strITSServerAddress Address of the Iridia Tracking System Server
-         */
-        std::string m_strITSServerAddress;
-
-        /**
-         * @brief m_unITSServerPort Port on which the Iridia Tracking System Server is running
-         */
-        UInt32 m_unITSServerPort;
 
         /**
          * @brief m_unVirtualSensorServerPort Port on which the VSS is running on the local machine
@@ -240,24 +210,17 @@ namespace argos {
          */
         CVector3 m_cArenaCenter3D;
 
-
         /**
          * @brief m_tTableRobotId Table that binds Argos ID with Tag and Robot ID
          */
         TTableRobotId * m_tTableRobotId;
-
 
         /**
          * @brief m_bRealExperiment Flag that tells whether the experiment is real or simulated
          */
         bool m_bRealExperiment;
 
-        /**
-         * @brief m_strResultsFile Path to a results file to use as source
-         */
-        std::string m_strResultsFile;
-
-		/** A positional index for the Models entities */
+        /** A positional index for the Models entities */
 		CPositionalIndex<CIridiaTrackingSystemModel>* m_pcITSModelIndex;
 
 		/** The update operation for the grid positional index */
@@ -265,7 +228,6 @@ namespace argos {
 
 		/** Operation to check rays */
 		CITSModelCheckIntersectionOperation* m_pcOperation;
-
 
         ros::NodeHandle* rosNode;
 
