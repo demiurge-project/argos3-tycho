@@ -437,7 +437,7 @@ namespace argos {
         for(std::vector<UInt32>::iterator it = std::begin(m_vecUsedRobotTagList); it != std::end(m_vecUsedRobotTagList); ++it) {
             //init color
             topic.str("");
-            topic << "/epuck" << *it << "/" << m_strTopic;
+            topic << "/epuck_" << *it << "/" << m_strTopic;
             LOG << topic.str() << std::endl;
             odomSubscribers[*it] = rosNode->subscribe(topic.str(), 1000, &CIridiaTrackingSystem::OdomCallback, this);
         }
@@ -456,7 +456,7 @@ namespace argos {
         std::string topic = event.getConnectionHeader().at("topic");
         topic = topic.substr(1, topic.length()); // remove initial /
         topic = topic.substr(0, topic.find("/"));
-        UInt32 robotID = std::stoi(topic.substr(5, topic.length())); // remove "epuck"
+        UInt32 robotID = std::stoi(topic.substr(6, topic.length())); // remove "epuck_"
         // get the position and orientation
         CArenaStateStruct::SRealWorldCoordinates coordinates = *(new CArenaStateStruct::SRealWorldCoordinates());
         coordinates.cPosition[0] = msg->pose.pose.position.x;

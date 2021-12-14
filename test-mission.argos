@@ -11,7 +11,7 @@
     <!-- ****************** -->
     <!-- * Loop functions * -->
     <!-- ****************** -->
-    <loop_functions library="/home/jkuckling/AutoMoDe-loopfunctions/build/loop-functions/vanilla/libforaging_loopfunc.so"
+    <loop_functions library="/home/trackingsystem/jkuckling/AutoMoDe-loopfunctions/build/loop-functions/vanilla/libforaging_loopfunc.so"
                     label="foraging_loop_functions">
         <params dist_radius="1.2" number_robots="20"/>
     </loop_functions>
@@ -21,7 +21,7 @@
     <!-- *************** -->
     <controllers>
         <!-- TRANSMITTER -->
-        <automode_controller id="automode" library="/home/jkuckling/AutoMoDe-FSM/build/src/libautomode.so">
+        <automode_controller id="automode" library="/home/trackingsystem/jkuckling/AutoMoDe/build/src/libautomode.so">
             <actuators>
                 <epuck_wheels implementation="default" noise_std_dev="0.05"/>
                 <epuck_rgb_leds implementation="default" medium="leds"/>
@@ -187,6 +187,7 @@
             translate_y="0"
             its_host="10.129.240.162"
             its_port="4040"
+            topic="odometry/filtered"
         />
         <dynamics2d id="dyn2d" />
     </physics_engines>
