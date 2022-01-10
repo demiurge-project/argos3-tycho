@@ -122,6 +122,8 @@ namespace argos {
                     "Failed to initialize its physics engines. Parse error in expected parameter \"topic\".", ex);
         }
 
+        m_cStatusThread = new CTychoStatusThread(this);
+
         // Init ROS
         if (!ros::isInitialized()) {
             //init ROS
@@ -136,10 +138,7 @@ namespace argos {
     /****************************************/
 
     void CIridiaTrackingSystem::Reset() {
-        // Notify the clients to move towards the target
-        // m_cVirtualSensorServer.ReplaceRobots();
-        // ReplaceRobots contains SendAllVirtualSensorData in a loop
-        // wait until all robots are back in place
+        m_cStatusThread->Reset();
 
         // Update the physics engine
         Update();
@@ -153,6 +152,7 @@ namespace argos {
 
     void CIridiaTrackingSystem::Destroy() {
         // Disconnect from ROS?
+        // Cancel status thread?
     }
 
     /****************************************/
@@ -189,6 +189,7 @@ namespace argos {
 
         // If this is the first step, start the Tracking System
         if (m_cSpace.GetSimulationClock() == 1) {
+            m_cStatusThread->Start();
             if (m_bRealExperiment) {
                 m_cVirtualSensorServer.ExperimentStarted();
                 m_cVirtualSensorServer.SendArgosSignal(1);

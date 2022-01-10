@@ -26,6 +26,7 @@
  *
  *
  * @author Mattia Salvaro
+ * @author Jonas Kuckling
  */
 
 #ifndef IRIDIA_TRACKING_SYSTEM_H
@@ -33,6 +34,7 @@
 
 namespace argos {
    class CArgosITSClientThread;
+   class CTychoStatusThread;
 }
 
 namespace argos {
@@ -45,6 +47,7 @@ namespace argos {
 
 #include <argos3/plugins/simulator/physics_engines/iridia_tracking_system/argos_its_client/arena_state_struct.h>
 #include <argos3/plugins/simulator/physics_engines/iridia_tracking_system/virtual_sensor_server/virtual_sensor_server.h>
+#include <argos3/plugins/simulator/physics_engines/iridia_tracking_system/tycho_status_thread.h>
 
 #include <argos3/core/utility/math/ray2.h>
 #include <argos3/core/simulator/entity/controllable_entity.h>
@@ -184,6 +187,11 @@ namespace argos {
          * @brief m_cSpace A reference to the CSpace instance
          */
         CSpace& m_cSpace;
+
+        /**
+         * @brief m_cSpace A reference to the CTychoStatusThread instance
+         */
+        CTychoStatusThread* m_cStatusThread;
 
         /**
          * @brief m_vecUsedRobotTagList List of all the tags used in the experiment

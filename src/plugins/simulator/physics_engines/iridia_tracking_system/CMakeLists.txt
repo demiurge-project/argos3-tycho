@@ -73,6 +73,7 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_IRIDIA_TRACKING_SYSTEM
   iridia_tracking_system_box_model.h
   iridia_tracking_system_cylinder_model.h
   iridia_tracking_system_rectangular_model.h
+  tycho_status_thread.h
 )
 
 #
@@ -87,6 +88,7 @@ set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_IRIDIA_TRACKING_SYSTEM
   iridia_tracking_system_epuck_model.cpp
   iridia_tracking_system_box_model.cpp
   iridia_tracking_system_cylinder_model.cpp
+  tycho_status_thread.cpp
 )
 
 
