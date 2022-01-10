@@ -26,18 +26,21 @@ namespace argos {
 
     void CTychoStatusThread::Start()
     {
+        pthread_create(&m_cThread, NULL, (void * (*) (void *)) &argos::CTychoStatusThread::Run, this);
         LOG << "StatusThread is started" << std::endl;
-        // TODO: Start the thread here
     }
 
     void CTychoStatusThread::Reset() {
-        // TODO: Implement
+        m_bExperimentIsFinished = false;
+        pthread_cancel(m_cThread);
+        LOG << "StatusThread is reset" << std::endl;
     }
 
     void CTychoStatusThread::Run()
     {
         // wait until the experiment is finished
         while(!m_bExperimentIsFinished) {
+            sleep(0);
             m_bExperimentIsFinished = m_pcIridiaTrackingSystem->IsExperimentFinished();
         }
         OnExperimentFinished();
@@ -45,7 +48,7 @@ namespace argos {
 
     void CTychoStatusThread::OnExperimentFinished()
     {
-        LOG << "StatusThread detected that experiment finished" << std::endl;
         m_bExperimentIsFinished = true;
+        m_pcIridiaTrackingSystem->TerminateExperiment();
     }
 }

@@ -28,6 +28,8 @@ namespace argos {
 #include <argos3/core/utility/string_utilities.h>
 #include <argos3/core/utility/logging/argos_log.h>
 
+#include <pthread.h>
+
 namespace argos {
 
     class CTychoStatusThread
@@ -56,9 +58,7 @@ namespace argos {
             /* Pointer to the physics engine */
             CIridiaTrackingSystem * m_pcIridiaTrackingSystem;
 
-            /*****************************************************************
-             *  Flags 
-             *****************************************************************/
+            pthread_t m_cThread;
 
             /*
              * @brief m_bExperimentIsFinished indicates if the experiment is finished (TODO how?)
