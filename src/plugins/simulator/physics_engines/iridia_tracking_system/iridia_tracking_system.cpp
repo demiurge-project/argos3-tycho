@@ -166,9 +166,8 @@ namespace argos {
         CreateOdomSubscribers();
 
         // Create the status publisher and inform ROS that ARGoS is online
-        CreateStatusPublisher();    
+        CreateStatusPublisher();
 
-        
         // If the VSS is enabled, then launch it
         if (m_bRealExperiment) {
             DEBUG("VSS enabled\n");
@@ -180,8 +179,6 @@ namespace argos {
         std_msgs::String str;
         str.data = "Initialized";
         statusPublisher.publish(str);
-
-        DEBUG("ROS.\n");
 
         // For each entry in m_tPhysicsModels update its state
         Update();
@@ -197,9 +194,12 @@ namespace argos {
         // Refresh ROS
         ros::spinOnce();
 
+        /* Use this to debug if a message is send during the first update  
+        LOG << m_cSpace.GetSimulationClock() << std::endl;
         std_msgs::String str;
         str.data = std::to_string(m_cSpace.GetSimulationClock());
         statusPublisher.publish(str);
+        */
 
         // If this is the first step, start the Tracking System
         if (m_cSpace.GetSimulationClock() == 1) {
