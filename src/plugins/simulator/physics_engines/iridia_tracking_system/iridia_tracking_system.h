@@ -60,6 +60,8 @@ namespace argos {
 
 #include "ros/ros.h"
 #include <nav_msgs/Odometry.h>
+#include <std_msgs/String.h>
+
 
 
 namespace argos {
@@ -171,6 +173,11 @@ namespace argos {
          */
         void OdomCallback(const ros::MessageEvent<nav_msgs::Odometry const>& event);
 
+        /*
+         * @brief CreateStatusPublisher Creates a publisher that will inform other programs over the state of ARGoS.
+         */
+        void CreateStatusPublisher();
+
     private:
 
         /**
@@ -242,6 +249,8 @@ namespace argos {
         std::string m_strTopic;
 
         std::map<UInt32, ros::Subscriber> odomSubscribers;
+
+        ros::Publisher statusPublisher;
 
     };
 

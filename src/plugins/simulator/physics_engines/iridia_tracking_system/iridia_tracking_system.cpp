@@ -165,6 +165,10 @@ namespace argos {
         // Subscribe to the topics of the robots
         CreateOdomSubscribers();
 
+        // Create the status publisher and inform ROS that ARGoS is online
+        CreateStatusPublisher();    
+
+        
         // If the VSS is enabled, then launch it
         if (m_bRealExperiment) {
             DEBUG("VSS enabled\n");
@@ -172,6 +176,12 @@ namespace argos {
         }
 
         DEBUG("Arena State is initialized.\n");
+
+        std_msgs::String str;
+        str.data = "Initialized";
+        statusPublisher.publish(str);
+
+        DEBUG("ROS.\n");
 
         // For each entry in m_tPhysicsModels update its state
         Update();
@@ -187,6 +197,10 @@ namespace argos {
         // Refresh ROS
         ros::spinOnce();
 
+        std_msgs::String str;
+        str.data = std::to_string(m_cSpace.GetSimulationClock());
+        statusPublisher.publish(str);
+
         // If this is the first step, start the Tracking System
         if (m_cSpace.GetSimulationClock() == 1) {
             m_cStatusThread->Start();
@@ -194,6 +208,10 @@ namespace argos {
                 m_cVirtualSensorServer.ExperimentStarted();
                 m_cVirtualSensorServer.SendArgosSignal(1);
             }
+
+            std_msgs::String str;
+            str.data = "Started";
+            statusPublisher.publish(str);
         }
 
         // For each physics model, call the UpdateEntityStatus
@@ -255,6 +273,10 @@ namespace argos {
         if (m_bRealExperiment) {
             m_cVirtualSensorServer.SendArgosSignal(0);
         }
+        std_msgs::String str;
+        str.data = "Stopped";
+        statusPublisher.publish(str);
+
         m_cSimulator.Terminate();
     }
 
@@ -470,6 +492,15 @@ namespace argos {
         // set the new information
         TRobotState robotState = *(new TRobotState(robotID, coordinates));
         m_cArenaStateStruct.SetRobotState(robotState);
+    }
+
+    /****************************************/
+    /****************************************/
+
+    void CIridiaTrackingSystem::CreateStatusPublisher() {
+        LOG << "/argos3/status" << std::endl;
+        std::string topic = "/argos3/status";
+        statusPublisher = rosNode->advertise<std_msgs::String>(topic, 1000);
     }
 
     /****************************************/
