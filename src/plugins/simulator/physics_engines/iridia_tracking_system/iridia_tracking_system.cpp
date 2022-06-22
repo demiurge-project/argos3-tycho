@@ -129,7 +129,7 @@ namespace argos {
             //init ROS
             char **argv = NULL;
             int argc = 0;
-            ros::init(argc, argv, "automode");
+            ros::init(argc, argv, "argos3_tycho");
             rosNode = new ros::NodeHandle();
         }
     }
