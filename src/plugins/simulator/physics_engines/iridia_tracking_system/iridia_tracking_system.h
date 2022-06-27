@@ -21,6 +21,7 @@
  * Optional arguments are:
  *      translate_y
  *      translate_x
+ *      rotate_phi
  * to set the center of the arena inside the big arena room.
  *
  *
@@ -224,6 +225,8 @@ namespace argos {
          * @brief m_cArenaCenter3D Physics Arena Center
          */
         CVector3 m_cArenaCenter3D;
+
+        Real m_fArenaRotation;
 
         /**
          * @brief m_tTableRobotId Table that binds Argos ID with Tag and Robot ID

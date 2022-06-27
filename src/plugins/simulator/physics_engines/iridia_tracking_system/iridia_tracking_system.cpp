@@ -104,6 +104,7 @@ namespace argos {
         try {
             GetNodeAttributeOrDefault<Real>(t_tree, "translate_x", fArenaCenterX, 0.0f);
             GetNodeAttributeOrDefault<Real>(t_tree, "translate_y", fArenaCenterY, 0.0f);
+            GetNodeAttributeOrDefault<Real>(t_tree, "rotate_phi", m_fArenaRotation, 0.0f);
         }
         catch (CARGoSException &ex) {
             THROW_ARGOSEXCEPTION_NESTED(
@@ -482,13 +483,17 @@ namespace argos {
         UInt32 robotID = std::stoi(topic.substr(6, topic.length())); // remove "epuck_"
         // get the position and orientation
         CArenaStateStruct::SRealWorldCoordinates coordinates = *(new CArenaStateStruct::SRealWorldCoordinates());
-        coordinates.cPosition[0] = msg->pose.pose.position.x;
-        coordinates.cPosition[1] = msg->pose.pose.position.y;
+        Real pos_x = msg->pose.pose.position.x;
+        Real pos_y = msg->pose.pose.position.y;
+        coordinates.cPosition[0] = pos_x * cos(m_fArenaRotation) - pos_y * sin(m_fArenaRotation);
+        coordinates.cPosition[1] = pos_y * cos(m_fArenaRotation) + pos_x * sin(m_fArenaRotation);
         coordinates.cPosition[2] = msg->pose.pose.position.z;
+        CQuaternion cRotationPhi = CQuaternion().FromEulerAngles(CRadians(m_fArenaRotation), CRadians(0), CRadians(0));
         coordinates.cOrientation.SetX(msg->pose.pose.orientation.x);
         coordinates.cOrientation.SetY(msg->pose.pose.orientation.y);
         coordinates.cOrientation.SetZ(msg->pose.pose.orientation.z);
         coordinates.cOrientation.SetW(msg->pose.pose.orientation.w);
+        coordinates.cOrientation *= cRotationPhi;
         // set the new information
         TRobotState robotState = *(new TRobotState(robotID, coordinates));
         m_cArenaStateStruct.SetRobotState(robotState);

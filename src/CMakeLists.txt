@@ -11,38 +11,39 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 # Include path points to the base source dir
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
 
-# Find ROS packages
-
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  tf
-  std_msgs
-  geometry_msgs
-  nav_msgs
-  message_generation
-)
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  geometry_msgs
-  nav_msgs
-)
-
-catkin_package(
-  LIBRARIES template_controller
-  CATKIN_DEPENDS message_runtime roscpp std_msgs geometry_msgs nav_msgs tf
-  DEPENDS system_lib
-)
-
-include_directories(
-		${catkin_INCLUDE_DIRS}
-)
-
-link_libraries(${catkin_LIBRARIES})
 
 if(ARGOS_BUILD_FOR STREQUAL "simulator")
 	set (ARGOS_BUILD_FOR_SIMULATOR)
+
+    # Find ROS packages
+
+    find_package(catkin REQUIRED COMPONENTS
+      roscpp
+      tf
+      std_msgs
+      geometry_msgs
+      nav_msgs
+      message_generation
+    )
+
+    generate_messages(
+      DEPENDENCIES
+      std_msgs
+      geometry_msgs
+      nav_msgs
+    )
+
+    catkin_package(
+      LIBRARIES template_controller
+      CATKIN_DEPENDS message_runtime roscpp std_msgs geometry_msgs nav_msgs tf
+      DEPENDS system_lib
+    )
+
+    include_directories(
+		    ${catkin_INCLUDE_DIRS}
+    )
+
+    link_libraries(${catkin_LIBRARIES})
 
 	# Find the ARGoS package
 	find_package(PkgConfig)
