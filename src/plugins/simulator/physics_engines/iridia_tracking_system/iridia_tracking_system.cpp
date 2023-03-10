@@ -105,10 +105,11 @@ namespace argos {
             GetNodeAttributeOrDefault<Real>(t_tree, "translate_x", fArenaCenterX, 0.0f);
             GetNodeAttributeOrDefault<Real>(t_tree, "translate_y", fArenaCenterY, 0.0f);
             GetNodeAttributeOrDefault<Real>(t_tree, "rotate_phi", m_fArenaRotation, 0.0f);
+            GetNodeAttributeOrDefault<Real>(t_tree, "tag_offset", m_fTagOffset, 0.09f);
         }
         catch (CARGoSException &ex) {
             THROW_ARGOSEXCEPTION_NESTED(
-                    "Failed to initialize its physics engines. Parse error in translate_x, translate_y.", ex);
+                    "Failed to initialize its physics engines. Parse error in translate_x, translate_y, rotate_phi, rvr_tag_offset.", ex);
         }
 
         m_cArenaCenter3D.SetX(fArenaCenterX);
@@ -407,9 +408,11 @@ namespace argos {
         // For each physics model
         for (CIridiaTrackingSystemModel::TMap::iterator it = m_tPhysicsModels.begin();
              it != m_tPhysicsModels.end(); ++it) {
-            // Does the model is a footbot or an epuck?
-            if ((it->second->GetEmbodiedEntity().GetParent().GetTypeDescription() == "epuck")
-                || (it->second->GetEmbodiedEntity().GetParent().GetTypeDescription() == "foot-bot")) {
+            std::string strRobotType = it->second->GetEmbodiedEntity().GetParent().GetTypeDescription();
+            // Is the model a footbot, an epuck, or a rvr?
+            if ((strRobotType == "epuck")
+                || (strRobotType == "foot-bot")
+                || (strRobotType == "rvr")) {
                 // Get its Argos ID
                 // The Argos ID is the ID of the robot as defined in the XML file.
                 // The name must contain an arbitrary string - underscore - robot tag (ITS ID) - underscore - robot ID
@@ -429,11 +432,14 @@ namespace argos {
                 }
                 // Convert ITS ID in int form
                 UInt32 unITSId = FromString<UInt32>(vecTokens[vecTokens.size() - 2]);
-                CArenaStateStruct::TRobotState tRobotState(std::make_pair(unITSId, CArenaStateStruct::SRealWorldCoordinates(
-                                                                          it->second->GetEmbodiedEntity().GetOriginAnchor().Position +
+                CArenaStateStruct::SRealWorldCoordinates coordinates = *(new CArenaStateStruct::SRealWorldCoordinates(it->second->GetEmbodiedEntity().GetOriginAnchor().Position +
                                                                           m_cArenaCenter3D,
                                                                           it->second->GetEmbodiedEntity().GetOriginAnchor().Orientation,
-                                                                          (UInt32) 0)));
+                                                                          (UInt32) 0));
+                if (strRobotType == "rvr") {
+                    GetRealPosition(coordinates, m_fTagOffset);
+                }
+                CArenaStateStruct::TRobotState tRobotState(std::make_pair(unITSId, coordinates));
                 // Convert robot ID in int form
                 UInt32 unRobotId = FromString<UInt32>(vecTokens[vecTokens.size() - 1]);
 
@@ -441,8 +447,9 @@ namespace argos {
                 std::pair <UInt32, UInt32> pairITSIdRobotId = std::make_pair(unITSId, unRobotId);
                 // Fill the Robot ID Table
                 m_tTableRobotId->insert(std::make_pair(strArgosId, pairITSIdRobotId));
-                // Fill another vector with robot tag only
-                m_vecUsedRobotTagList.push_back(tRobotState.first);
+                // Fill another vector with robot tag and robot type
+                std::pair <UInt32, std::string> pairTagType = std::make_pair(tRobotState.first, strRobotType);
+                m_vecUsedRobotTagAndTypeList.push_back(pairTagType);
                 // Fill a vector with robot state
                 vecXMLDeclaredInitialArenaState.push_back(tRobotState);
             }
@@ -458,12 +465,12 @@ namespace argos {
     void CIridiaTrackingSystem::CreateOdomSubscribers() {
         std::stringstream topic;
 
-        for(std::vector<UInt32>::iterator it = std::begin(m_vecUsedRobotTagList); it != std::end(m_vecUsedRobotTagList); ++it) {
+        for(std::vector<std::pair<UInt32, std::string>>::iterator it = std::begin(m_vecUsedRobotTagAndTypeList); it != std::end(m_vecUsedRobotTagAndTypeList); ++it) {
             //init color
             topic.str("");
-            topic << "/epuck_" << *it << "/" << m_strTopic;
+            topic << "/" << it->second << "_" << it->first << "/" << m_strTopic;
             LOG << topic.str() << std::endl;
-            odomSubscribers[*it] = rosNode->subscribe(topic.str(), 1000, &CIridiaTrackingSystem::OdomCallback, this);
+            odomSubscribers[it->first] = rosNode->subscribe(topic.str(), 1000, &CIridiaTrackingSystem::OdomCallback, this);
         }
         // m_vecUsedRobotTagList
         for (int j = 0; j < 40; j++) {
@@ -480,7 +487,8 @@ namespace argos {
         std::string topic = event.getConnectionHeader().at("topic");
         topic = topic.substr(1, topic.length()); // remove initial /
         topic = topic.substr(0, topic.find("/"));
-        UInt32 robotID = std::stoi(topic.substr(6, topic.length())); // remove "epuck_"
+        std::string strRobotType = topic.substr(0, topic.find("_"));
+        UInt32 robotID = std::stoi(topic.substr(topic.find("_")+1, topic.length())); // remove robot type, ex: "epuck_"
         // get the position and orientation
         CArenaStateStruct::SRealWorldCoordinates coordinates = *(new CArenaStateStruct::SRealWorldCoordinates());
         Real pos_x = msg->pose.pose.position.x;
@@ -495,6 +503,9 @@ namespace argos {
         coordinates.cOrientation.SetW(msg->pose.pose.orientation.w);
         coordinates.cOrientation *= cRotationPhi;
         // set the new information
+        if (strRobotType == "rvr") {
+            GetRealPosition(coordinates, m_fTagOffset);
+        }
         TRobotState robotState = *(new TRobotState(robotID, coordinates));
         m_cArenaStateStruct.SetRobotState(robotState);
     }
@@ -506,6 +517,16 @@ namespace argos {
         LOG << "/argos3/status" << std::endl;
         std::string topic = "/argos3/status";
         statusPublisher = rosNode->advertise<std_msgs::String>(topic, 1000);
+    }
+
+    /****************************************/
+    /****************************************/
+
+    void CIridiaTrackingSystem::GetRealPosition(CArenaStateStruct::SRealWorldCoordinates& coordinates, const Real& fTagOffset) {
+        CRadians cZAngle, cYAngle, cXAngle;
+        coordinates.cOrientation.ToEulerAngles(cZAngle, cYAngle, cXAngle); 
+        coordinates.cPosition[0] -= fTagOffset*Cos(cZAngle);
+        coordinates.cPosition[1] -= fTagOffset*Sin(cZAngle);
     }
 
     /****************************************/

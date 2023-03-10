@@ -35,6 +35,7 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
   target_link_libraries(void
     argos3core_${ARGOS_BUILD_FOR}
     argos3plugin_${ARGOS_BUILD_FOR}_epuck
+    argos3plugin_${ARGOS_BUILD_FOR}_rvr
     argos3plugin_${ARGOS_BUILD_FOR}_genericrobot
     argos3plugin_${ARGOS_BUILD_FOR}_genericvirtualsensorsandactuators
   )
@@ -46,6 +47,18 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
   target_link_libraries(pathplanning
     argos3core_${ARGOS_BUILD_FOR}
     argos3plugin_${ARGOS_BUILD_FOR}_epuck
+    argos3plugin_${ARGOS_BUILD_FOR}_genericrobot
+    argos3plugin_${ARGOS_BUILD_FOR}_genericvirtualsensorsandactuators
+    void
+  )
+
+  ADD_LIBRARY(pathplanning_rvr SHARED
+      path_planning_controller_rvr.h
+      path_planning_controller_rvr.cpp
+  )
+  target_link_libraries(pathplanning_rvr
+    argos3core_${ARGOS_BUILD_FOR}
+    argos3plugin_${ARGOS_BUILD_FOR}_rvr
     argos3plugin_${ARGOS_BUILD_FOR}_genericrobot
     argos3plugin_${ARGOS_BUILD_FOR}_genericvirtualsensorsandactuators
     void

@@ -53,7 +53,12 @@ void CGPSVirtualSensor::SetRobot(CComposableEntity &c_entity)
 			m_pcEmbodiedEntity = &(dynamic_cast<CEPuckEntity&>(c_entity).GetEmbodiedEntity());
 		}
 		catch (const std::bad_cast& e){
-			throw CARGoSException("Unknown robot");
+			try{
+				m_pcEmbodiedEntity = &(dynamic_cast<CRVREntity&>(c_entity).GetEmbodiedEntity());
+			}
+			catch (const std::bad_cast& e){
+				throw CARGoSException("Unknown robot");
+			}
 		}
 	}
     GetITSAndRobotIdFromArgosId(m_pairITSAndRobotId, m_strRobotArgosId);

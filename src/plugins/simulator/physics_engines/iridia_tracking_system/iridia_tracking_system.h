@@ -178,6 +178,11 @@ namespace argos {
          * @brief CreateStatusPublisher Creates a publisher that will inform other programs over the state of ARGoS.
          */
         void CreateStatusPublisher();
+        
+        /*
+         * @brief GetRealPosition Corrects the position of the robot if the tag is not centered.
+         */
+        void GetRealPosition(CArenaStateStruct::SRealWorldCoordinates& coordinates, const Real& fTagOffset);
 
     private:
 
@@ -204,7 +209,7 @@ namespace argos {
         /**
          * @brief m_vecUsedRobotTagList List of all the tags used in the experiment
          */
-        std::vector<UInt32> m_vecUsedRobotTagList;
+        std::vector<std::pair<UInt32, std::string>> m_vecUsedRobotTagAndTypeList;
 
         /**
          * @brief m_unVirtualSensorServerPort Port on which the VSS is running on the local machine
@@ -227,6 +232,8 @@ namespace argos {
         CVector3 m_cArenaCenter3D;
 
         Real m_fArenaRotation;
+
+        Real m_fTagOffset;
 
         /**
          * @brief m_tTableRobotId Table that binds Argos ID with Tag and Robot ID

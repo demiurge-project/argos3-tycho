@@ -19,6 +19,7 @@ namespace argos {
 #include <argos3/plugins/robots/generic/control_interface/ci_destination_virtual_sensor.h>
 #include <argos3/plugins/robots/generic/simulator/generic_virtual_sensor.h>
 #include <argos3/plugins/robots/e-puck/simulator/epuck_entity.h>
+#include <argos3/plugins/robots/rvr/simulator/rvr_entity.h>
 #include <argos3/plugins/robots/foot-bot/simulator/footbot_entity.h>
 #include <argos3/core/simulator/sensor.h>
 

@@ -9,6 +9,7 @@
 #define POSITION_GENERATOR_H_
 
 #include <argos3/demiurge/loop-functions/CoreLoopFunctions.h>
+#include <argos3/demiurge/loop-functions/RVRCoreLoopFunctions.h>
 #include <argos3/core/simulator/loop_functions.h>
 
 /* Real number generator, copied from argos3/core/simulator/space/space.cpp */
@@ -173,6 +174,45 @@ class RealNumberGenerator {
    /****************************************/
    /****************************************/
 
+   class RVRCustomGenerator : public RealNumberGenerator {
+   public:
+      RVRCustomGenerator(const std::string& str_libloopfunction,
+                        const std::string& str_labelloopfunction,
+                          TConfigurationNode& t_tree ) :
+         m_strLib(str_libloopfunction),
+         m_strLabel(str_labelloopfunction),
+         m_tTree(t_tree) {
+           InitLoopFunctions();
+         }
+
+       void InitLoopFunctions() {
+         try {
+            CDynamicLoading::LoadLibrary(m_strLib);
+            m_pcLoopFunction = CFactory<CLoopFunctions>::New(m_strLabel);
+            m_pcRVRCoreLoopFunction = static_cast<RVRCoreLoopFunctions*>(m_pcLoopFunction);
+            std::cout << m_tTree << std::endl;
+            m_pcRVRCoreLoopFunction->Init(m_tTree);
+         }
+         catch(CARGoSException& ex) {
+            THROW_ARGOSEXCEPTION_NESTED("Error initializing loop functions", ex);
+         }
+       }
+
+      inline virtual CVector3 operator()(bool b_is_retry) {
+         return m_pcRVRCoreLoopFunction->GetRandomPosition();
+      }
+
+   private:
+      std::string m_strLib;
+      std::string m_strLabel;
+      TConfigurationNode m_tTree;
+      CLoopFunctions* m_pcLoopFunction;
+      RVRCoreLoopFunctions* m_pcRVRCoreLoopFunction;
+   };
+
+   /****************************************/
+   /****************************************/
+
    RealNumberGenerator* CreateGenerator(TConfigurationNode& t_tree) {
       std::string strMethod;
       GetNodeAttribute(t_tree, "method", strMethod);
@@ -217,10 +257,15 @@ class RealNumberGenerator {
         return new GridGenerator(cCenter, unLayout, cDistances);
       }
       else if (strMethod == "fromLoopFunction") {
-        std::string strLibrary, strLabel;
+        std::string strLibrary, strLabel, strRobot;
         GetNodeAttribute(t_tree, "library", strLibrary);
         GetNodeAttribute(t_tree, "label", strLabel);
-        return new CustomGenerator(strLibrary, strLabel, t_tree);
+        GetNodeAttributeOrDefault(t_tree, "robot", strRobot, std::string("epuck"));
+        if (strRobot == "rvr"){
+            return new RVRCustomGenerator(strLibrary, strLabel, t_tree);
+        } else {
+            return new CustomGenerator(strLibrary, strLabel, t_tree);
+        }
       }
       else {
        THROW_ARGOSEXCEPTION("Unknown distribution method \"" << strMethod << "\"");

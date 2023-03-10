@@ -70,6 +70,7 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_IRIDIA_TRACKING_SYSTEM
   iridia_tracking_system_model.h
   iridia_tracking_system_footbot_model.h
   iridia_tracking_system_epuck_model.h
+  iridia_tracking_system_rvr_model.h
   iridia_tracking_system_box_model.h
   iridia_tracking_system_cylinder_model.h
   iridia_tracking_system_rectangular_model.h
@@ -86,6 +87,7 @@ set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_IRIDIA_TRACKING_SYSTEM
   iridia_tracking_system.cpp
   iridia_tracking_system_footbot_model.cpp
   iridia_tracking_system_epuck_model.cpp
+  iridia_tracking_system_rvr_model.cpp
   iridia_tracking_system_box_model.cpp
   iridia_tracking_system_cylinder_model.cpp
   tycho_status_thread.cpp
