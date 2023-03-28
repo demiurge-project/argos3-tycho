@@ -454,4 +454,4 @@ std::vector<CVirtualSensorDataPosition2D> CSimplifiedPathPlanningRVRLoopFunction
 /****************************************/
 /****************************************/
 
-REGISTER_LOOP_FUNCTIONS(CSimplifiedPathPlanningRVRLoopFunctions, "simplified_pathplanning_loop_functions")
+REGISTER_LOOP_FUNCTIONS(CSimplifiedPathPlanningRVRLoopFunctions, "simplified_pathplanning_rvr_loop_functions")
