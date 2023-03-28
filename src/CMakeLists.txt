@@ -24,6 +24,7 @@ if(ARGOS_BUILD_FOR STREQUAL "simulator")
       geometry_msgs
       nav_msgs
       message_generation
+      rvr_ros
     )
 
     generate_messages(
@@ -35,7 +36,7 @@ if(ARGOS_BUILD_FOR STREQUAL "simulator")
 
     catkin_package(
       LIBRARIES template_controller
-      CATKIN_DEPENDS message_runtime roscpp std_msgs geometry_msgs nav_msgs tf
+      CATKIN_DEPENDS message_runtime roscpp std_msgs geometry_msgs nav_msgs tf rvr_ros
       DEPENDS system_lib
     )
 

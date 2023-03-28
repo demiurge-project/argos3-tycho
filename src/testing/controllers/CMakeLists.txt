@@ -57,6 +57,7 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
       path_planning_controller_rvr.cpp
   )
   target_link_libraries(pathplanning_rvr
+    ${catkin_LIBRARIES}
     argos3core_${ARGOS_BUILD_FOR}
     argos3plugin_${ARGOS_BUILD_FOR}_rvr
     argos3plugin_${ARGOS_BUILD_FOR}_genericrobot

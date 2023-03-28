@@ -104,6 +104,7 @@ add_library(argos3plugin_simulator_iridia_tracking_system SHARED
 )
 
 target_link_libraries(argos3plugin_simulator_iridia_tracking_system
+    ${catkin_LIBRARIES}
     ${QT_LIBRARIES}
     argos3core_simulator
     argos3plugin_simulator_genericvirtualsensorsandactuators
